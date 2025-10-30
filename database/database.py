@@ -9,7 +9,8 @@ class Database:
             host=kwargs["host"],
             user=kwargs["user"],
             password=kwargs["password"],
-            database=kwargs["database"]
+            database=kwargs["database"],
+            cursorclass=pymysql.cursors.DictCursor
         )
         self.__cursor = self.__connection.cursor()
         self.__table_created = False

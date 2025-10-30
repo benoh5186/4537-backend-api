@@ -9,3 +9,8 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8)
+
+
+class PasswordException(Exception):
+    def __init__(self):
+        super().__init__("incorrect password")
