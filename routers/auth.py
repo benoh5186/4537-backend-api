@@ -23,20 +23,25 @@ async def handle_login(request: Request, response: Response):
         validate_login(login_schema)
         create_session_cookie(login_schema, response)
         return JSONResponse(
-            status_code=200,
+            status_code=status.HTTP_200_OK,
             content={
                 "message" : "login success"
             }
         )
-    except ValidationError as error:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=error
-        )
-    except PasswordException as error:
+    except ValidationError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={
+                "correct_schema" : False,
+                "email" : False,
+                "password" : False
+            }
+        )
+    except PasswordException:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "correct_schema" : True,
                 "email" : True,
                 "password" : False
             }
@@ -44,8 +49,35 @@ async def handle_login(request: Request, response: Response):
 
 
 @router.post("/api/auth/signup")
-async def handle_signup():
-    pass 
+async def handle_signup(request: Request):
+    try:
+        check_if_already_in_session(request) 
+        user_info = await request.json()
+        singup_schema = UserCreate(**user_info)
+        inserted = db.insert_user(singup_schema)
+        if inserted:
+            return JSONResponse(
+                status_code=status.HTTP_201_CREATED,
+                content={
+                    "message" : "sign up successful"
+                }
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "correct_schema" : True,
+                    "user_exists" : True
+                }
+            )
+    except ValidationError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "correct_schema" : False,
+                "user_exists" : False
+            }
+        )
 
 
 
@@ -93,6 +125,7 @@ def validate_login(login_info:UserLogin):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={
+                "correct_schema" : True,
                 "email" : False,
                 "password" : False 
             }
