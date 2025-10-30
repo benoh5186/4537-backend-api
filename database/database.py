@@ -1,5 +1,6 @@
 import pymysql
 import os 
+from schemas.user_schema import UserCreate, UserLogin
 
 
 class Database:
@@ -12,9 +13,12 @@ class Database:
         )
         self.__cursor = self.__connection.cursor()
         self.__table_created = False
-    
-    def find_user(self, user_info):
-        pass
+
+    def find_user(self, user_info: UserLogin):
+        query = f"SELECT * FROM users WHERE  email = %s"
+        self.__cursor.execute(query, (user_info.email, ))
+        user = self.__cursor.fetchone()
+        return user 
 
     def user_exists(self, user_info):
         pass
