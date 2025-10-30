@@ -52,11 +52,11 @@ async def handle_login(request: Request, response: Response):
 async def handle_signup(request: Request):
     try:
         check_if_already_in_session(request) 
-        user_info = await request.json()
-        hashed_password = bcrypt.hashpw(user_info["password"], bcrypt.gensalt())
-        user_info["password"] = hashed_password
-        singup_schema = UserCreate(**user_info)
-        inserted = db.insert_user(singup_schema)
+        user_data = await request.json()
+        signup_schema = UserCreate(**user_data)
+        hashed_password = bcrypt.hashpw(signup_schema.password.encode("utf-8"), bcrypt.gensalt())
+        hashed_user = {"email" : signup_schema.email, "password" : hashed_password, "is_admin" : signup_schema.is_admin}
+        inserted = db.insert_user(hashed_user)
         if inserted:
             return JSONResponse(
                 status_code=status.HTTP_201_CREATED,

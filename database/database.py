@@ -30,14 +30,14 @@ class Database:
         else:
             return False 
 
-    def insert_user(self, user_info: UserCreate):
+    def insert_user(self, user_info):
         try:
-            query = """INSERT INTO user (email, password, is_admin) VALUES (%s %s %s)"""
-            self.__cursor.execute(query, (user_info.email, user_info.password, user_info.is_admin))
-            self.__cursor.commit() 
+            query = """INSERT INTO user (email, password, is_admin) VALUES (%s, %s, %s)"""
+            self.__cursor.execute(query, (user_info["email"], user_info["password"], user_info["is_admin"]))
+            self.__connection.commit() 
             return True 
         except pymysql.IntegrityError:
-            self.__cursor.rollback()
+            self.__connection.rollback()
             return False
 
     def __create_table(self):
