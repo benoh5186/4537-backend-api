@@ -26,7 +26,11 @@ async def handle_login(request: Request, response: Response):
             status_code=status.HTTP_200_OK,
             content={
                 "message" : "login success",
-                "user" : user 
+                "user" : {
+                    "email" : user["email"],
+                    "is_admin" : user["is_admin"],
+                    "api_token" : user["api_usage"]
+                } 
             }
         )
     except ValidationError:

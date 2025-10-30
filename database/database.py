@@ -46,7 +46,7 @@ class Database:
                 email VARCHAR(100) NOT NULL UNIQUE,
                 password VARCHAR(255) NOT NULL,
                 is_admin BOOL NOT NULL DEFAULT FALSE,
-                API_USAGE INT NOT NULL DEFAULT 30
+                api_usage INT NOT NULL DEFAULT 30
                 ) ENGINE=InnoDB;
             """
         self.__cursor.execute(query)
