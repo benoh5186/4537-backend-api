@@ -1,6 +1,7 @@
+from email import message
 from fastapi import APIRouter, HTTPException, Request, Response, status 
 from fastapi.responses import JSONResponse
-from schemas.user_schema import UserLogin, UserCreate
+from schemas.user_schema import UserLogin, UserCreate, PasswordException
 from pydantic import ValidationError
 from database.database import Database
 import os 
@@ -19,24 +20,26 @@ async def handle_login(request: Request, response: Response):
         check_if_already_in_session(request)
         user_info = await request.json()
         login_schema = UserLogin(**user_info)
-        validated = validate_login(login_schema)
-        if validated:
-            create_access_token(response)
-            return JSONResponse(
-                status_code=200,
-                content={
-                    "message" : "login success"
-                }
-            )
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="incorrect password"
-            )
+        validate_login(login_schema)
+        create_access_token(response)
+        return JSONResponse(
+            status_code=200,
+            content={
+                "message" : "login success"
+            }
+        )
     except ValidationError as error:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=error
+        )
+    except PasswordException as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "email" : True,
+                "password" : False
+            }
         )
 
 
@@ -62,11 +65,15 @@ def validate_login(login_info:UserLogin):
     user = db.find_user(login_info)
     if user:
         user_pw = user["password"]
-        if bcrypt.checkpw(login_info.password, user_pw):
-            return True
-        else:
-            return False  
+        if not bcrypt.checkpw(login_info.password, user_pw):
+            raise PasswordException
 
     else:
-        return False 
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "email" : False,
+                "password" : False 
+            }
+        )
 
