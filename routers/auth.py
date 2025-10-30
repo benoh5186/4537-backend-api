@@ -1,4 +1,3 @@
-from email import message
 from fastapi import APIRouter, HTTPException, Request, Response, status 
 from fastapi.responses import JSONResponse
 from schemas.user_schema import UserLogin, UserCreate, PasswordException
@@ -7,6 +6,7 @@ from database.database import Database
 import os 
 import jwt
 import bcrypt
+from datetime import datetime, timedelta
 
 router = APIRouter()
 db = Database(**{"host" : os.getenv("DB_HOST"), "port" : os.getenv("DB_PORT"), 
@@ -14,14 +14,14 @@ db = Database(**{"host" : os.getenv("DB_HOST"), "port" : os.getenv("DB_PORT"),
 "database" : os.getenv("DATABASE")})
 
 
-@router.post("v1/login/")
+@router.post("/api/auth/login/")
 async def handle_login(request: Request, response: Response):
     try:
         check_if_already_in_session(request)
         user_info = await request.json()
         login_schema = UserLogin(**user_info)
         validate_login(login_schema)
-        create_access_token(response)
+        create_session_cookie(login_schema, response)
         return JSONResponse(
             status_code=200,
             content={
@@ -43,23 +43,44 @@ async def handle_login(request: Request, response: Response):
         )
 
 
-@router.post("v1/signup")
+@router.post("/api/auth/signup")
 async def handle_signup():
     pass 
 
 
 
-async def validate_session(request: Request):
-    pass
 
-async def check_if_already_in_session(request: Request):
+def check_if_already_in_session(request: Request):
+    jwt_token = request.cookies.get("jwt")
+    if jwt_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "in_session" : True
+            }
+        )
+
+def create_access_token(user_data):
+    payload = {
+        "email" : user_data.get("email"),
+        "iat" : datetime.utcnow(),
+        "exp" : datetime.utcnow() + timedelta(minutes=5)
+     }
+    jwt_token = jwt.encode(payload, algorithm=os.getenv("JWT_ALGORITHM"), key=os.getenv("JWT_SECRET_KEY"))
+    return jwt_token
+
+def create_session_cookie(user_data, response: Response):
+    jwt_token = create_access_token(user_data)
+    response.set_cookie(
+        key="jwt",
+        value=jwt_token,
+        httponly=True,
+        secure=True,
+        samesite="strict",
+        max_age=300
+    )
+
     
-    pass 
-
-
-def create_access_token():
-    
-    pass
 
 def validate_login(login_info:UserLogin):
     user = db.find_user(login_info)

@@ -13,16 +13,22 @@ class Database:
             cursorclass=pymysql.cursors.DictCursor
         )
         self.__cursor = self.__connection.cursor()
-        self.__table_created = False
+        self.__create_table()
 
     def find_user(self, user_info: UserLogin):
-        query = f"SELECT * FROM users WHERE  email = %s"
+        query = "SELECT * FROM users WHERE  email = %s"
         self.__cursor.execute(query, (user_info.email, ))
         user = self.__cursor.fetchone()
         return user 
 
-    def user_exists(self, user_info):
-        pass
+    def user_exists(self, user_info: UserLogin):
+        query = "SELECT * FROM users WHERE email = %s"
+        self.__cursor.execute(query, (user_info.email, ))
+        user = self.__cursor.fetchone()
+        if user:
+            return True
+        else:
+            return False 
 
     def insert_user(self, user_info):
         pass 
