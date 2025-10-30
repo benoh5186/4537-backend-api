@@ -20,12 +20,13 @@ async def handle_login(request: Request, response: Response):
         check_if_already_in_session(request)
         user_info = await request.json()
         login_schema = UserLogin(**user_info)
-        validate_login(login_schema)
+        user = validate_login(login_schema)
         create_session_cookie(login_schema, response)
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
-                "message" : "login success"
+                "message" : "login success",
+                "user" : user 
             }
         )
     except ValidationError:
@@ -122,6 +123,7 @@ def validate_login(login_info:UserLogin):
         user_pw = user["password"]
         if not bcrypt.checkpw(login_info.password, user_pw):
             raise PasswordException
+        return user 
 
     else:
         raise HTTPException(
