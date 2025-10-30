@@ -53,6 +53,8 @@ async def handle_signup(request: Request):
     try:
         check_if_already_in_session(request) 
         user_info = await request.json()
+        hashed_password = bcrypt.hashpw(user_info["password"], bcrypt.gensalt())
+        user_info["password"] = hashed_password
         singup_schema = UserCreate(**user_info)
         inserted = db.insert_user(singup_schema)
         if inserted:
