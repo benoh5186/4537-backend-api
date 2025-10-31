@@ -33,11 +33,7 @@ class AuthRouter:
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={
-                    "user" : {
-                        "email" : user["email"],
-                        "is_admin" : user["is_admin"],
-                        "api_token" : user["api_usage"]
-                    } 
+                    "message" : "login success"
                 }
             )
         except ValidationError as error:
