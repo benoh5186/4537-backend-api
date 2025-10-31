@@ -91,16 +91,16 @@ def check_if_already_in_session(request: Request):
             status_code=status.HTTP_401_UNAUTHORIZED
         )
 
-def create_access_token(user_data):
+def create_access_token(user_data: UserLogin):
     payload = {
-        "email" : user_data.get("email"),
+        "email" : user_data.email,
         "iat" : datetime.utcnow(),
         "exp" : datetime.utcnow() + timedelta(minutes=5)
      }
     jwt_token = jwt.encode(payload, algorithm=os.getenv("JWT_ALGORITHM"), key=os.getenv("JWT_SECRET_KEY"))
     return jwt_token
 
-def create_session_cookie(user_data, response: Response):
+def create_session_cookie(user_data: UserLogin, response: Response):
     jwt_token = create_access_token(user_data)
     response.set_cookie(
         key="jwt",
@@ -116,8 +116,9 @@ def create_session_cookie(user_data, response: Response):
 def validate_login(login_info:UserLogin):
     user = db.find_user(login_info)
     if user:
-        user_pw = user["password"]
-        if not bcrypt.checkpw(login_info.password, user_pw):
+        user_pw_bytes = user["password"].encode('utf-8')
+        login_password_bytes = login_info.password.encode('utf-8')
+        if not bcrypt.checkpw(login_password_bytes, user_pw_bytes):
             raise PasswordException
         return user 
 
