@@ -83,7 +83,7 @@ async def handle_signup(request: Request):
                 }
             )
     except ValidationError as error:
-        detail = {"email" : True, "password" : True}
+        detail = {"correct_schema" : False, "email" : True, "password" : True}
         field_errors = [err['loc'][-1] for err in error.errors()]
         for field in field_errors:
             if field in detail:
