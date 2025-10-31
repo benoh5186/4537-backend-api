@@ -3,10 +3,27 @@ Manages API calls to AI API, Security, Authorization, and Database
 
 
 #Set Up
-1. 
-
-
-
+1. Start virtual environment
+```bash
+python -m venv .venv
+```
+2. Activate virtual environment (always before running)
+macOS/Linux:
+```bash
+source .venv/bin/activate
+```
+Windows:
+```bash
+.venv\Scripts\activate
+```
+3. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+4. Run app
+```bash
+uvicorn main:app --reload
+```
 
 
 # Headers

@@ -1,0 +1,7 @@
+fastapi
+pymysql
+pydantic
+python-dotenv
+pyjwt
+bcrypt
+uvicorn
