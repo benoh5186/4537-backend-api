@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request, Response, status 
 from fastapi.responses import JSONResponse
-from starlette.status import HTTP_200_OK
 from schemas.user_schema import UserLogin, UserCreate, PasswordException
 from pydantic import ValidationError
 from database.database import Database
@@ -9,28 +8,57 @@ import jwt
 import bcrypt
 from datetime import datetime, timedelta
 
+"""
+Authentication router module for handling user login, signup, and session management.
+
+This module provides the AuthRouter class which implements authentication endpoints and the AuthUtility class for JWT token generation and credential validation.
+"""
+
 
 class AuthRouter:
+    """
+    Router class handling authentication endpoints for login, signup, and session management.
+    """
 
     def __init__(self, db_info):
+        """
+        Initialize an AuthRouter with database connection information.
+        
+        :param db_info: a dictionary containing database connection parameters
+        """
         self.__router = APIRouter()
         self.__db = Database(**db_info)
         self.__add_routes()
 
     def __add_routes(self):
+        """
+        Register authentication API routes to the router.
+        """
         self.__router.add_api_route(path="/api/auth/login/", endpoint=self.__handle_login, methods=["POST"])
         self.__router.add_api_route(path="/api/auth/signup", endpoint=self.__handle_signup, methods=["POST"])
         self.__router.add_api_route(path="/api/auth/session", endpoint=self.__handle_session, methods=["GET"]) 
     
     def get_router(self):
+        """
+        Return the configured APIRouter instance.
+        
+        :return: the APIRouter object with registered authentication routes
+        """
         return self.__router
 
     async def __handle_session(self, request: Request):
+        """
+        Handle session verification requests by checking for a valid JWT cookie.
+        
+        :param request: the incoming HTTP request object
+        :return: a JSON response indicating session status
+        :raises HTTPException: if no valid JWT token is found in cookies
+        """
         jwt_token = request.cookies.get("jwt")
         print(jwt_token)
         if jwt_token:
             return {JSONResponse(
-                status_code=HTTP_200_OK,
+                status_code=status.HTTP_200_OK,
                 content={
                     "message" : "in session"
                 }
@@ -46,6 +74,14 @@ class AuthRouter:
 
 
     async def __handle_login(self, request: Request, response: Response):
+        """
+        Handle user login requests by validating credentials and creating a session cookie.
+        
+        :param request: the incoming HTTP request containing user login credentials
+        :param response: the HTTP response object to set the session cookie
+        :return: a dictionary with a success message
+        :raises HTTPException: if validation fails or credentials are incorrect
+        """
         try:
             user_info = await request.json()
             login_schema = UserLogin(**user_info)
@@ -70,6 +106,13 @@ class AuthRouter:
             )
             
     async def __handle_signup(self, request: Request):
+        """
+        Handle user registration requests by validating input and creating a new user account.
+        
+        :param request: the incoming HTTP request containing user registration data
+        :return: a JSON response indicating successful account creation
+        :raises HTTPException: if validation fails or user already exists
+        """
         try:
             user_data = await request.json()
             signup_schema = UserCreate(**user_data)
@@ -102,9 +145,18 @@ class AuthRouter:
 
 
 class AuthUtility:
+    """
+    Utility class providing static methods for authentication operations including token generation and validation.
+    """
 
     @staticmethod
     def create_access_token(user_data: UserLogin):
+        """
+        Create a JWT access token for an authenticated user.
+        
+        :param user_data: a UserLogin object containing user credentials
+        :return: an encoded JWT token string
+        """
         payload = {
             "email" : user_data.email,
             "iat" : datetime.utcnow(),
@@ -115,6 +167,13 @@ class AuthUtility:
 
     @staticmethod
     def create_session_cookie(user_data: UserLogin, response: Response):
+        """
+        Create and set a session cookie with a JWT token in the HTTP response.
+        
+        :param user_data: a UserLogin object containing user credentials
+        :param response: the HTTP response object to attach the cookie to
+        """
+
         jwt_token = AuthUtility.create_access_token(user_data)
         response.set_cookie(
             key="jwt",
@@ -127,6 +186,15 @@ class AuthUtility:
 
     @staticmethod
     def validate_login(login_info:UserLogin, db):
+        """
+        Validate user login credentials against stored database records.
+        
+        :param login_info: a UserLogin object containing email and password
+        :param db: the database instance to query for user information
+        :raises PasswordException: if the password does not match
+        :raises HTTPException: if the user is not found in the database
+        """
+
         user = db.find_user(login_info)
         if user:
             user_pw_bytes = user["password"].encode('utf-8')
