@@ -27,13 +27,14 @@ class AuthRouter:
 
     async def __handle_session(self, request: Request):
         jwt_token = request.cookies.get("jwt")
+        print(jwt_token)
         if jwt_token:
-            return JSONResponse(
+            return {JSONResponse(
                 status_code=HTTP_200_OK,
                 content={
                     "message" : "in session"
                 }
-            )
+            )}
         else:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -43,18 +44,15 @@ class AuthRouter:
                 
             )
 
+
     async def __handle_login(self, request: Request, response: Response):
         try:
             user_info = await request.json()
             login_schema = UserLogin(**user_info)
             AuthUtility.validate_login(login_schema, self.__db)
             AuthUtility.create_session_cookie(login_schema, response)
-            return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={
-                    "message" : "login success"
-                }
-            )
+            print(response.headers.get("set_cookie"))
+            return {"message" : "login success"}
         except ValidationError as error:
             detail = {"email" : True, "password" : True}
             field_errors = [err['loc'][-1] for err in error.errors()]
@@ -122,8 +120,8 @@ class AuthUtility:
             key="jwt",
             value=jwt_token,
             httponly=True,
-            secure=True,
-            samesite="strict",
+            secure=False,
+            samesite="lax",
             max_age=300
         )
 
