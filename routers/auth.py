@@ -86,7 +86,7 @@ async def handle_signup(request: Request):
             detail={
                 "correct_schema" : False,
                 "user_exists" : False,
-                "error" : error 
+                "error" : str(error) 
             }
         )
 

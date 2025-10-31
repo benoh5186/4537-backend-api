@@ -16,17 +16,22 @@ class Database:
             user=self.__data["user"],
             password=self.__data["password"],
             database=self.__data["database"],
-            cursorclass=pymysql.cursors.DictCursor)
+            cursorclass=pymysql.cursors.DictCursor,
+            ssl={'ssl': True})
         self.__cursor = self.__connection.cursor()
         self.__create_table()
 
     def find_user(self, user_info: UserLogin):
+        if self.__connection is None:
+            self.start_database()
         query = "SELECT * FROM user WHERE  email = %s"
         self.__cursor.execute(query, (user_info.email, ))
         user = self.__cursor.fetchone()
         return user 
 
     def user_exists(self, user_info):
+        if self.__connection is None:
+            self.start_database()
         query = "SELECT * FROM user WHERE email = %s"
         self.__cursor.execute(query, (user_info["email"], ))
         user = self.__cursor.fetchone()
@@ -37,6 +42,8 @@ class Database:
 
     def insert_user(self, user_info):
         try:
+            if self.__connection is None:
+                self.start_database()
             query = """INSERT INTO user (email, password, is_admin) VALUES (%s, %s, %s)"""
             self.__cursor.execute(query, (user_info["email"], user_info["password"], user_info["is_admin"]))
             self.__connection.commit() 
