@@ -2,21 +2,39 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import auth
+import os 
 
-app = FastAPI()
+load_dotenv()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"]
-
-)
+db_info = {"host" : os.getenv("DB_HOST"), "port" : int(os.getenv("DB_PORT")), 
+"user" : os.getenv("DB_USER"), "password" : os.getenv("DB_PASSWORD"), 
+"database" : os.getenv("DATABASE")}
 
 routers = [
-    auth.router 
+    auth.AuthRouter(db_info).get_router()
 ]
 
-for router in routers:
-    app.include_router(router)
+class App:
+    def __init__(self):
+        self.__app = FastAPI()
+        self.__add_middleware()
+    
+    def __add_middleware(self):
+        self.__app.add_middleware(
+                CORSMiddleware,
+                allow_origins=["*"],
+                allow_credentials=True,
+                allow_methods=["*"]
+            )
+    def add_routers(self, routers):
+        for router in routers:
+            self.__app.include_router(router)
+
+    def get_app(self):
+        return self.__app
+
+app_instance = App()
+app_instance.add_routers(routers)
+
+app = app_instance.get_app()
 
