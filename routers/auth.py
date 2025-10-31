@@ -121,7 +121,6 @@ def validate_login(login_info:UserLogin):
         if not bcrypt.checkpw(login_password_bytes, user_pw_bytes):
             raise PasswordException
         return user 
-
     else:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED
