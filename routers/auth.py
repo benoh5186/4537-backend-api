@@ -3,13 +3,16 @@ from fastapi.responses import JSONResponse
 from schemas.user_schema import UserLogin, UserCreate, PasswordException
 from pydantic import ValidationError
 from database.database import Database
+from dotenv import load_dotenv
 import os 
 import jwt
 import bcrypt
 from datetime import datetime, timedelta
 
+load_dotenv()
+
 router = APIRouter()
-db = Database(**{"host" : os.getenv("DB_HOST"), "port" : os.getenv("DB_PORT"), 
+db = Database(**{"host" : os.getenv("DB_HOST"), "port" : int(os.getenv("DB_PORT")), 
 "user" : os.getenv("DB_USER"), "password" : os.getenv("DB_PASSWORD"), 
 "database" : os.getenv("DATABASE")})
 

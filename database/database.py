@@ -5,13 +5,18 @@ from schemas.user_schema import UserCreate, UserLogin
 
 class Database:
     def __init__(self, **kwargs) -> None:
+        self.__connection = None
+        self.__data = kwargs 
+        self.__cursor = None
+
+    def start_database(self):
         self.__connection = pymysql.connect(
-            host=kwargs["host"],
-            user=kwargs["user"],
-            password=kwargs["password"],
-            database=kwargs["database"],
-            cursorclass=pymysql.cursors.DictCursor
-        )
+            host=self.__data["host"],
+            port=self.__data["port"],
+            user=self.__data["user"],
+            password=self.__data["password"],
+            database=self.__data["database"],
+            cursorclass=pymysql.cursors.DictCursor)
         self.__cursor = self.__connection.cursor()
         self.__create_table()
 
