@@ -36,14 +36,16 @@ async def handle_login(request: Request, response: Response):
                 } 
             }
         )
-    except ValidationError:
+    except ValidationError as error:
+        detail = {"correct_schema" : False, "email" : True, "password" : True}
+        field_errors = [err['loc'][-1] for err in error.errors()]
+        for field in field_errors:
+            if field in detail:
+                detail[field] = False
+
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "correct_schema" : False,
-                "email" : False,
-                "password" : False
-            }
+            detail=detail
         )
     except PasswordException:
         raise HTTPException(
@@ -81,11 +83,11 @@ async def handle_signup(request: Request):
                 }
             )
     except ValidationError as error:
-        detail = {"email" : False, "password" : False}
+        detail = {"email" : True, "password" : True}
         field_errors = [err['loc'][-1] for err in error.errors()]
         for field in field_errors:
             if field in detail:
-                detail[field] = True
+                detail[field] = False
 
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
