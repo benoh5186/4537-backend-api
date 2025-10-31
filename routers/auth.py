@@ -77,12 +77,13 @@ async def handle_signup(request: Request):
                     "user_exists" : True
                 }
             )
-    except ValidationError:
+    except ValidationError as error:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail={
                 "correct_schema" : False,
-                "user_exists" : False
+                "user_exists" : False,
+                "error" : error 
             }
         )
 
