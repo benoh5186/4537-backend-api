@@ -195,7 +195,7 @@ class AuthUtility:
         :raises HTTPException: if the user is not found in the database
         """
 
-        user = db.find_user(login_info)
+        user = db.find_user(login_info.email)
         if user:
             user_pw_bytes = user["password"].encode('utf-8')
             login_password_bytes = login_info.password.encode('utf-8')

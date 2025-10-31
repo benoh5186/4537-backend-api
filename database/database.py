@@ -38,17 +38,17 @@ class Database:
         self.__cursor = self.__connection.cursor()
         self.__create_table()
 
-    def find_user(self, user_info: UserLogin):
+    def find_user(self, user_email):
         """
         Find and retrieve a user from the database by email address.
         
-        :param user_info: a UserLogin object containing the user's email
+        :param user_email: string representing user's email address
         :return: a dictionary containing user data if found, None otherwise
         """
         if self.__connection is None:
             self.start_database()
         query = "SELECT * FROM user WHERE  email = %s"
-        self.__cursor.execute(query, (user_info.email, ))
+        self.__cursor.execute(query, (user_email, ))
         user = self.__cursor.fetchone()
         return user 
 
@@ -56,7 +56,7 @@ class Database:
         """
         Check if a user exists in the database by email address.
         
-        :param user_info: a dictionary containing the user's email
+        :param user_email: a dictionary containing the user's email
         :return: True if the user exists, False otherwise
         """
         if self.__connection is None:
