@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, Response, status 
 from fastapi.responses import JSONResponse
+from starlette.status import HTTP_200_OK
 from schemas.user_schema import UserLogin, UserCreate, PasswordException
 from pydantic import ValidationError
 from database.database import Database
@@ -19,13 +20,31 @@ class AuthRouter:
     def __add_routes(self):
         self.__router.add_api_route(path="/api/auth/login/", endpoint=self.__handle_login, methods=["POST"])
         self.__router.add_api_route(path="/api/auth/signup", endpoint=self.__handle_signup, methods=["POST"])
+        self.__router.add_api_route(path="/api/auth/session", endpoint=self.__handle_session, methods=["GET"]) 
     
     def get_router(self):
         return self.__router
 
+    async def __handle_session(self, request: Request):
+        jwt_token = request.cookies.get("jwt")
+        if jwt_token:
+            return JSONResponse(
+                status_code=HTTP_200_OK,
+                content={
+                    "message" : "in session"
+                }
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={
+                    "message" : "not in session"
+                }
+                
+            )
+
     async def __handle_login(self, request: Request, response: Response):
         try:
-            AuthUtility.check_if_already_in_session(request)
             user_info = await request.json()
             login_schema = UserLogin(**user_info)
             AuthUtility.validate_login(login_schema, self.__db)
@@ -54,7 +73,6 @@ class AuthRouter:
             
     async def __handle_signup(self, request: Request):
         try:
-            AuthUtility.check_if_already_in_session(request) 
             user_data = await request.json()
             signup_schema = UserCreate(**user_data)
             hashed_password = bcrypt.hashpw(signup_schema.password.encode("utf-8"), bcrypt.gensalt())
@@ -86,14 +104,6 @@ class AuthRouter:
 
 
 class AuthUtility:
-
-    @staticmethod
-    def check_if_already_in_session(request: Request):
-        jwt_token = request.cookies.get("jwt")
-        if jwt_token:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED
-            )
 
     @staticmethod
     def create_access_token(user_data: UserLogin):
