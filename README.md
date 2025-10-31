@@ -12,7 +12,7 @@ Manages API calls to AI API, Security, Authorization, and Database
 # Headers
 - `Content-Type: application/json`
 - Allow all origins(for now)
-- authentication required through JWT
+- authentication required with JWT
 
 
 
@@ -27,31 +27,29 @@ Manages API calls to AI API, Security, Authorization, and Database
 
 
 # Schemas 
-- UserCreation: represents a row to be inserted in user table in the mysql database with defined constraints for all parameters such as email, password, is_admin. ValidationException will be raised if the parameters in the body of the request does not match the parameter constraints defined in the schema.
+- UserCreation: represents a row to be inserted in `user` table in the mysql database with defined constraints for all parameters such as email, password, is_admin. ValidationException will be raised if the parameters in the body of the request does not match the parameter constraints defined in the schema.
 - UserLogin: represents a row to fetch from user table in the database, with defined constraints for all parameters such as email and password. ValidationException is raised if the constraints are not met.
 
 
 # Database
-A class that executes queries for `user` table in mysql database. Creates `user` table if it does not already exist in the database.
+A class with methods that executes queries for `user` table in mysql database. Creates `user` table if it does not already exist in the database.
 
 
 # Exceptions
-- PasswordException: Raised if the email is found in the database but the password from the request body does not match the password for the row with the same email in the database
+- PasswordException: Raised if the email is found in the database, but the password from the request body does not match the password for the row with the identical email in the database
 
 
 #Endpoints
 
-## POST: 'api/auth/login/'
-Authenticates the user if their credential matches one of the data rows in the database.
+## POST: 'api/auth/login'
+Authenticates the user if their credential matches one of the rows in the `user` table in the database.
 - `email` parameter: string that needs to match type, EmailType, from pydantic
 = `password` parameter: string that represents unhashed password to compare to the hashed password in the database
     -  needs to be encoded in bytes before checking if the password for the user email, if found in the database, matches it using bcrypt.checkpw(login_pass_in_bytes, user_database_pw_in_bytes) method
 - Returns Ok(200), if the user is authenticated with cookie that includes jwt
 - Returns Unprocessable Entity(422), if the login information does not match UserLogin 
 Schema 
-- Returns Unauthorized(401) for two reasons:
-    - if the email exists in the database, but the password does not match for the user with the email in the database.
-    - if the browser making the request is already in session with cookie and jwt active
+- Returns Unauthorized(401) when the email exists in the database, but the password does not match the password in the row with the same email in the database.
 
 ### Request Example
 
@@ -159,7 +157,7 @@ Schema
 }
 ```
 
-## POST: 'api/auth/signup/'
+## POST: 'api/auth/signup'
 Inserts user information such as email, password, and is_admin that represents a row in the user table into the database
 - `email` parameter: string that needs to match email format specified in UserLogin schema
 - `password` parameter: string that needs to match password format specified in UserLogin schema
@@ -169,7 +167,6 @@ Inserts user information such as email, password, and is_admin that represents a
 - Returns Unprocessable Entity(422) if the user information does not match UserCreation 
 Schema 
 - Returns Conflict(409) if the user email already exists in the database
-- Returns Unauthorized(401) if the browser making the request is already in session with cookie and jwt active
 
 ### Request Example
 
@@ -260,5 +257,31 @@ Schema
         "email" : False,
         "password" : False
     }
+}
+```
+
+## GET: 'api/auth/session'
+Checks if the browser is currently in session by checking if the JWT inside the cookie is not expired yet.
+- Returns Ok(200), if the JWT is still active
+- Returns Unauthorized(401) if the JWT does not exist or has expired 
+
+### Request Example
+
+##### If JWT is active
+- Res:
+```json
+{
+    "code" : 200,
+    "message" : "In session"
+}
+```
+
+##### If JWT does not exist or has expired
+
+- Res:
+``` json
+{
+    "code" : 401,
+    "message" : "not in session"
 }
 ```
