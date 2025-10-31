@@ -81,16 +81,16 @@ async def handle_signup(request: Request):
                 }
             )
     except ValidationError as error:
+        detail = {"email" : False, "password" : False}
+        field_errors = [err['loc'][-1] for err in error.errors()]
+        for field in field_errors:
+            if field in detail:
+                detail[field] = True
+
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail={
-                "correct_schema" : False,
-                "user_exists" : False,
-                "error" : str(error) 
-            }
+            detail=detail
         )
-
-
 
 
 def check_if_already_in_session(request: Request):
