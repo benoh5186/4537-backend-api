@@ -28,7 +28,6 @@ async def handle_login(request: Request, response: Response):
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
-                "message" : "login success",
                 "user" : {
                     "email" : user["email"],
                     "is_admin" : user["is_admin"],
@@ -37,24 +36,19 @@ async def handle_login(request: Request, response: Response):
             }
         )
     except ValidationError as error:
-        detail = {"correct_schema" : False, "email" : True, "password" : True}
+        detail = {"email" : True, "password" : True}
         field_errors = [err['loc'][-1] for err in error.errors()]
         for field in field_errors:
             if field in detail:
                 detail[field] = False
 
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=detail
         )
     except PasswordException:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "correct_schema" : True,
-                "email" : True,
-                "password" : False
-            }
+            status_code=status.HTTP_400_BAD_REQUEST
         )
 
 
@@ -71,24 +65,19 @@ async def handle_signup(request: Request):
             return JSONResponse(
                 status_code=status.HTTP_201_CREATED,
                 content={
-                    "message" : "sign up successful"
+                    "message": "sign up successful"
                 }
             )
         else:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "correct_schema" : True,
-                    "user_exists" : True
-                }
+                status_code=status.HTTP_409_CONFLICT
             )
     except ValidationError as error:
-        detail = {"correct_schema" : False, "email" : True, "password" : True}
+        detail = {"email" : True, "password" : True}
         field_errors = [err['loc'][-1] for err in error.errors()]
         for field in field_errors:
             if field in detail:
                 detail[field] = False
-
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=detail
@@ -99,10 +88,7 @@ def check_if_already_in_session(request: Request):
     jwt_token = request.cookies.get("jwt")
     if jwt_token:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "in_session" : True
-            }
+            status_code=status.HTTP_401_UNAUTHORIZED
         )
 
 def create_access_token(user_data):
@@ -137,11 +123,6 @@ def validate_login(login_info:UserLogin):
 
     else:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail={
-                "correct_schema" : True,
-                "email" : False,
-                "password" : False 
-            }
+            status_code=status.HTTP_401_UNAUTHORIZED
         )
 
