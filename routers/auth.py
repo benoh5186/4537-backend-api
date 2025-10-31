@@ -1,3 +1,4 @@
+from operator import methodcaller
 from fastapi import APIRouter, HTTPException, Request, Response, status 
 from fastapi.responses import JSONResponse
 from schemas.user_schema import UserLogin, UserCreate, PasswordException
@@ -85,8 +86,8 @@ class AuthRouter:
         try:
             user_info = await request.json()
             login_schema = UserLogin(**user_info)
-            AuthUtility.validate_login(login_schema, self.__db)
-            AuthUtility.create_session_cookie(login_schema, response)
+            user = AuthUtility.validate_login(login_schema, self.__db)
+            AuthUtility.create_session_cookie(user, response)
             print(response.headers.get("set_cookie"))
             return {"message" : "login success"}
         except ValidationError as error:
@@ -150,15 +151,18 @@ class AuthUtility:
     """
 
     @staticmethod
-    def create_access_token(user_data: UserLogin):
+    def create_access_token(user_data):
         """
         Create a JWT access token for an authenticated user.
+
+        payload includes email address and api usage 
         
-        :param user_data: a UserLogin object containing user credentials
+        :param user_data: dict containing user credentials
         :return: an encoded JWT token string
         """
         payload = {
-            "email" : user_data.email,
+            "email" : user_data["email"],
+            "api_usage" : user_data["api_usage"],
             "iat" : datetime.utcnow(),
             "exp" : datetime.utcnow() + timedelta(minutes=5)
          }
@@ -166,11 +170,11 @@ class AuthUtility:
         return jwt_token
 
     @staticmethod
-    def create_session_cookie(user_data: UserLogin, response: Response):
+    def create_session_cookie(user_data, response: Response):
         """
         Create and set a session cookie with a JWT token in the HTTP response.
         
-        :param user_data: a UserLogin object containing user credentials
+        :param user_data: dict containing user credentials
         :param response: the HTTP response object to attach the cookie to
         """
 
@@ -183,6 +187,25 @@ class AuthUtility:
             samesite="lax",
             max_age=300
         )
+
+    @staticmethod
+    def get_jwt_payload(request: Request):
+        """
+        Decodes jwt token from cookies and returns payload.
+
+        Payload includes email address, api usage, creation time (iat), and expiration time (exp)
+
+        :param request: HTTP request
+        :return: payload data from decoding jwt
+        """
+        try:
+            jwt_token = request.cookies.get("jwt")
+            payload = jwt.decode(jwt=jwt_token, key=os.getenv("JWT_SECRET_KEY"), algorithms=os.getenv("JWT_ALGORITHM"))
+            return payload 
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Token has expired")
+        except jwt.InvalidTokenError:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
     @staticmethod
     def validate_login(login_info:UserLogin, db):
@@ -201,6 +224,7 @@ class AuthUtility:
             login_password_bytes = login_info.password.encode('utf-8')
             if not bcrypt.checkpw(login_password_bytes, user_pw_bytes):
                 raise PasswordException
+            return user 
         else:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED
