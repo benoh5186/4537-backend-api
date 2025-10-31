@@ -28,7 +28,7 @@ class AuthRouter:
             AuthUtility.check_if_already_in_session(request)
             user_info = await request.json()
             login_schema = UserLogin(**user_info)
-            user = AuthUtility.validate_login(login_schema, self.__db)
+            AuthUtility.validate_login(login_schema, self.__db)
             AuthUtility.create_session_cookie(login_schema, response)
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
@@ -125,7 +125,6 @@ class AuthUtility:
             login_password_bytes = login_info.password.encode('utf-8')
             if not bcrypt.checkpw(login_password_bytes, user_pw_bytes):
                 raise PasswordException
-            return user 
         else:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED
