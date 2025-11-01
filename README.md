@@ -54,6 +54,8 @@ A class with methods that executes queries for `user` table in mysql database. C
 
 # Exceptions
 - PasswordException: Raised if the email is found in the database, but the password from the request body does not match the password for the row with the identical email in the database
+- ValidationException: Raised if arguments do not match the expected constraints defined in the schema
+- HTTPException: Raised if the user is not authenticated or authorized, or for other general HTTP errors
 
 
 #Endpoints
