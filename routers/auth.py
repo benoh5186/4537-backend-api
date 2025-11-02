@@ -224,6 +224,7 @@ class AuthUtility:
             login_password_bytes = login_info.password.encode('utf-8')
             if not bcrypt.checkpw(login_password_bytes, user_pw_bytes):
                 raise PasswordException
+            user["is_admin"] = bool(user["is_admin"])
             return user 
         else:
             raise HTTPException(
