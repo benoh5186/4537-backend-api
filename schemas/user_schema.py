@@ -12,7 +12,7 @@ class UserCreate(BaseModel):
     Schema representing user registration data.
     """
     email: EmailStr
-    password: str = Field(min_length=8)
+    password: str = Field(min_length=3)
     is_admin: bool
 
 
@@ -21,7 +21,7 @@ class UserLogin(BaseModel):
     Schema representing user login credentials.
     """
     email: EmailStr
-    password: str = Field(min_length=8)
+    password: str = Field(min_length=3)
 
 
 class PasswordException(Exception):
