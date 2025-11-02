@@ -50,6 +50,7 @@ class Database:
         query = "SELECT * FROM user WHERE  email = %s"
         self.__cursor.execute(query, (user_email, ))
         user = self.__cursor.fetchone()
+        user["is_admin"] = bool(user["is_admin"])
         return user 
 
     def user_exists(self, user_info):

@@ -163,6 +163,7 @@ class AuthUtility:
         payload = {
             "email" : user_data["email"],
             "api_usage" : user_data["api_usage"],
+            "is_admin" : user_data["is_admin"],
             "iat" : datetime.utcnow(),
             "exp" : datetime.utcnow() + timedelta(minutes=5)
          }
@@ -217,7 +218,6 @@ class AuthUtility:
         :raises PasswordException: if the password does not match
         :raises HTTPException: if the user is not found in the database
         """
-
         user = db.find_user(login_info.email)
         if user:
             user_pw_bytes = user["password"].encode('utf-8')
