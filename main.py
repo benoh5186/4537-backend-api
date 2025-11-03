@@ -33,9 +33,10 @@ class App:
         """
         self.origins = ["https://4537-project-frontend.netlify.app", "http://localhost:8000"]
         self.__app = FastAPI()
-        self.__add_middleware()
         # TODO: Temporary fix for CORS Middleware issue
         self.__add_exception_handler()
+        self.add_routers()
+        self.__add_middleware()
     
     # TODO: Temporary fix for CORS Middleware issue
     def __add_exception_handler(self):
@@ -85,7 +86,7 @@ class App:
         return self.__app
 
 app_instance = App()
-app_instance.add_routers(routers)
+# app_instance.add_routers(routers)
 
 app = app_instance.get_app()
 
