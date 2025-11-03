@@ -35,7 +35,7 @@ class AuthRouter:
         Register authentication API routes to the router.
         """
         self.__router.add_api_route(path="/api/auth/login/", endpoint=self.__handle_login, methods=["POST"])
-        self.__router.add_api_route(path="/api/auth/signup", endpoint=self.__handle_signup, methods=["POST"])
+        self.__router.add_api_route(path="/api/auth/signup/", endpoint=self.__handle_signup, methods=["POST"])
         self.__router.add_api_route(path="/api/auth/authenticate", endpoint=self.__authenticate, methods=["GET"]) 
     
     def get_router(self):

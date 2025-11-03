@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from routers import auth
 import os 
 
@@ -32,7 +31,7 @@ class App:
         """
         self.__app = FastAPI()
         self.__add_middleware()
-        self.__app.add_exception_handler(Exception, self.__exception_handler)
+        self.__app.exception_handlers
     
     def __add_middleware(self):
         """
@@ -45,16 +44,6 @@ class App:
                 allow_methods=["*"],
                 allow_headers=["*"]
             )
-
-    def __exception_handler(self, request: Request, exc: Exception):
-        return JSONResponse(
-            status_code=500,
-            content={"detail": str(exc)},
-            headers={
-                "Access-Control-Allow-Origin": "https://4537-project-frontend.netlify.app",
-                "Access-Control-Allow-Credentials": "true"
-        })
-
 
     def add_routers(self, routers):
         """
