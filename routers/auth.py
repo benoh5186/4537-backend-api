@@ -140,18 +140,6 @@ class AuthRouter:
                 detail=detail
             )
             
-    @app.exception_handler(HTTPException)
-    async def http_exception_handler(request: Request, exc: HTTPException):
-        origin = request.headers.get("origin")
-        response = JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": exc.detail}
-        )
-        if origin in origins:
-            response.headers["Access-Control-Allow-Origin"] = origin
-            response.headers["Access-Control-Allow-Credentials"] = "true"
-        return response
-            
     # # TODO: Make a cleaner version of the explicit preflight handler
     # async def __preflight_handler(request: Request, full_path: str):
     #     response = JSONResponse(content={"ok": True})
