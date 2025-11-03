@@ -37,6 +37,7 @@ class AuthRouter:
         self.__router.add_api_route(path="/api/auth/login/", endpoint=self.__handle_login, methods=["POST"])
         self.__router.add_api_route(path="/api/auth/signup/", endpoint=self.__handle_signup, methods=["POST"])
         self.__router.add_api_route(path="/api/auth/authenticate", endpoint=self.__authenticate, methods=["GET"]) 
+        self.__router.add_api_route(path="/{full_path:path}", endpoint=self.__authenticate, methods=["OPTIONS"]) 
 
     def get_router(self):
         """
@@ -138,7 +139,21 @@ class AuthRouter:
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=detail
             )
+            
+    # TODO: Make a cleaner version of the explicit preflight handler
+    async def __preflight_handler(request: Request, full_path: str):
+        response = JSONResponse(content={"ok": True})
+        origin = request.headers.get("origin")
 
+        # TODO: better to check if origin is part of the allowed origins first
+        # if origin in origins:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = request.headers.get(
+            "access-control-request-headers", ""
+        )
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        return response
 
 
 
