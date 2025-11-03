@@ -19,6 +19,9 @@ async def handle_ai_json(request: Request):
         else:
             raise HTTPException(
                 # 400
-                status_code=response.status_code
+                status_code=response.status_code,
+                detail={
+                    "message" : "nah"
+                }
             )
 
