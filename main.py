@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from routers import auth
 import os 
 
@@ -30,8 +31,25 @@ class App:
         """
         Initialize an App instance with a FastAPI application and configure middleware.
         """
+        self.origins = ["https://4537-project-frontend.netlify.app", "http://localhost:8000"]
         self.__app = FastAPI()
         self.__add_middleware()
+        # TODO: Temporary fix for CORS Middleware issue
+        self.__add_exception_handler()
+    
+    # TODO: Temporary fix for CORS Middleware issue
+    def __add_exception_handler(self):
+        @self.__app.exception_handler(HTTPException)
+        async def http_exception_handler(request: Request, exc: HTTPException):
+            origin = request.headers.get("origin")
+            response = JSONResponse(
+                status_code=exc.status_code,
+                content={"detail": exc.detail}
+            )
+            if origin in self.origins:
+                response.headers["Access-Control-Allow-Origin"] = origin
+                response.headers["Access-Control-Allow-Credentials"] = "true"
+            return response
     
     def __add_middleware(self):
         """
@@ -39,7 +57,7 @@ class App:
         """
         self.__app.add_middleware(
                 CORSMiddleware,
-                allow_origins=["https://4537-project-frontend.netlify.app", "http://localhost:8000"],
+                allow_origins=self.origins,
                 allow_credentials=True,
                 allow_methods=["*"],
                 allow_headers=["*"]
