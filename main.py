@@ -49,6 +49,9 @@ class App:
             if origin in self.origins:
                 response.headers["Access-Control-Allow-Origin"] = origin
                 response.headers["Access-Control-Allow-Credentials"] = "true"
+            print("Origin header:", request.headers.get("origin"))
+            print("Adding CORS headers")
+
             return response
     
     def __add_middleware(self):
