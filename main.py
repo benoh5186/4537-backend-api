@@ -40,7 +40,8 @@ class App:
                 CORSMiddleware,
                 allow_origins=["https://4537-project-frontend.netlify.app"],
                 allow_credentials=True,
-                allow_methods=["*"]
+                allow_methods=["*"],
+                allow_headers=["*"]
             )
     def add_routers(self, routers):
         """
