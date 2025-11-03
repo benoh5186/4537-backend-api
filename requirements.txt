@@ -7,3 +7,4 @@ bcrypt
 uvicorn
 cryptography
 email-validator
+httpx
