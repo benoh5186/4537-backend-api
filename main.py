@@ -31,7 +31,12 @@ class App:
         """
         Initialize an App instance with a FastAPI application and configure middleware.
         """
-        self.origins = ["https://4537-project-frontend.netlify.app", "http://localhost:8000", "http://127.0.0.1:5500"]
+        self.origins = [
+            "https://4537-project-frontend.netlify.app", 
+            "https://four537-ai-backend.onrender.com/", 
+            "http://localhost:8000", # Local host server 
+            "http://127.0.0.1:5500"  # Live server
+        ]
         self.__app = FastAPI()
         # TODO: Temporary fix for CORS Middleware issue
         self.__add_exception_handler()
@@ -61,7 +66,7 @@ class App:
         """
         self.__app.add_middleware(
                 CORSMiddleware,
-                allow_origins=["*"],
+                allow_origins=self.origins,
                 allow_credentials=True,
                 allow_methods=["*"],
                 allow_headers=["*"]
