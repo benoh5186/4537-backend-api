@@ -6,3 +6,4 @@ pyjwt
 bcrypt
 uvicorn
 cryptography
+email-validator
