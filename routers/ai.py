@@ -10,7 +10,7 @@ async def handle_ai_json(request: Request):
     body = await request.json()
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            "http://0.0.0.0:8080/v1/json/parse",
+            "https://four537-ai-backend.onrender.com/v1/json/parse",
             json={"text" : body["text"], "lang" : body["lang"]}
         )
         if response.is_success:
