@@ -35,7 +35,7 @@ class App:
         self.__app = FastAPI()
         # TODO: Temporary fix for CORS Middleware issue
         self.__add_exception_handler()
-        self.add_routers()
+        self.add_routers(routers)
         self.__add_middleware()
     
     # TODO: Temporary fix for CORS Middleware issue
