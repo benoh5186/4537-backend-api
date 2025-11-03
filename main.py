@@ -38,7 +38,7 @@ class App:
         """
         self.__app.add_middleware(
                 CORSMiddleware,
-                allow_origins=["https://4537-project-frontend.netlify.app"],
+                allow_origins=["*"],
                 allow_credentials=True,
                 allow_methods=["*"],
                 allow_headers=["*"]
