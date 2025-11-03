@@ -49,6 +49,7 @@ class App:
     def __exception_handler(self, request: Request, exc: Exception):
         return JSONResponse(
             status_code=500,
+            content={"detail": str(exc)},
             headers={
                 "Access-Control-Allow-Origin": "https://4537-project-frontend.netlify.app",
                 "Access-Control-Allow-Credentials": "true"
