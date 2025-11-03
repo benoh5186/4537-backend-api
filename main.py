@@ -31,7 +31,7 @@ class App:
         """
         Initialize an App instance with a FastAPI application and configure middleware.
         """
-        self.origins = ["https://4537-project-frontend.netlify.app", "http://localhost:8000"]
+        self.origins = ["https://4537-project-frontend.netlify.app", "http://localhost:8000", "http://127.0.0.1:5500"]
         self.__app = FastAPI()
         # TODO: Temporary fix for CORS Middleware issue
         self.__add_exception_handler()
