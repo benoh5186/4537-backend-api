@@ -34,8 +34,8 @@ class AuthRouter:
         """
         Register authentication API routes to the router.
         """
-        self.__router.add_api_route(path="/api/auth/login/", endpoint=self.__handle_login, methods=["POST"])
-        self.__router.add_api_route(path="/api/auth/signup/", endpoint=self.__handle_signup, methods=["POST"])
+        self.__router.add_api_route(path="/api/auth/login", endpoint=self.__handle_login, methods=["POST"])
+        self.__router.add_api_route(path="/api/auth/signup", endpoint=self.__handle_signup, methods=["POST"])
         self.__router.add_api_route(path="/api/auth/authenticate", endpoint=self.__authenticate, methods=["GET"]) 
         # self.__router.add_api_route(path="/{full_path:path}", endpoint=self.__authenticate, methods=["OPTIONS"]) 
 
@@ -196,9 +196,10 @@ class AuthUtility:
             key="jwt",
             value=jwt_token,
             httponly=True,
-            secure=False,
-            samesite="lax",
-            max_age=300
+            secure=True,
+            samesite="none",
+            max_age=300,
+            path="/"
         )
 
     @staticmethod
