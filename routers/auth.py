@@ -1,4 +1,3 @@
-from operator import methodcaller
 from fastapi import APIRouter, HTTPException, Request, Response, status 
 from fastapi.responses import JSONResponse
 from schemas.user_schema import UserLogin, UserCreate, PasswordException
