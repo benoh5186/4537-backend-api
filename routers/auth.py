@@ -146,13 +146,13 @@ class AuthRouter:
         origin = request.headers.get("origin")
 
         # TODO: better to check if origin is part of the allowed origins first
-        # if origin in origins:
-        response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
-        response.headers["Access-Control-Allow-Headers"] = request.headers.get(
-            "access-control-request-headers", ""
-        )
-        response.headers["Access-Control-Allow-Credentials"] = "true"
+        if origin in ["https://4537-project-frontend.netlify.app", "http://localhost:8000"]:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = request.headers.get(
+                "access-control-request-headers", ""
+            )
+            response.headers["Access-Control-Allow-Credentials"] = "true"
         return response
 
 
