@@ -21,6 +21,7 @@ routers = [
     auth.AuthRouter(db_info).get_router()
 ]
 
+
 class App:
     """
     Application class for configuring and managing the FastAPI instance.
@@ -38,7 +39,7 @@ class App:
         """
         self.__app.add_middleware(
                 CORSMiddleware,
-                allow_origins=["https://4537-project-frontend.netlify.app", "localhost:3000"],
+                allow_origins=["*"],
                 allow_credentials=True,
                 allow_methods=["*"],
                 allow_headers=["*"]

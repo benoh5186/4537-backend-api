@@ -37,11 +37,7 @@ class AuthRouter:
         self.__router.add_api_route(path="/api/auth/login/", endpoint=self.__handle_login, methods=["POST"])
         self.__router.add_api_route(path="/api/auth/signup/", endpoint=self.__handle_signup, methods=["POST"])
         self.__router.add_api_route(path="/api/auth/authenticate", endpoint=self.__authenticate, methods=["GET"]) 
-        
-        self.__router.add_api_route(path="/api/auth/login/", endpoint=self.__handle_options, methods=["OPTIONS"])
-        self.__router.add_api_route(path="/api/auth/signup/", endpoint=self.__handle_options, methods=["OPTIONS"])
-        self.__router.add_api_route(path="/api/auth/authenticate", endpoint=self.__handle_options, methods=["OPTIONS"]) 
-    
+
     def get_router(self):
         """
         Return the configured APIRouter instance.
@@ -74,19 +70,6 @@ class AuthRouter:
                 }
                 
             )
-    async def __handle_options(self):
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={},
-            headers={
-                "Access-Control-Allow-Origin": "https://4537-project-frontend.netlify.app",
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "*",
-                "Access-Control-Allow-Credentials": "true"
-            }
-        )
-      
-
 
     async def __handle_login(self, request: Request, response: Response):
         """
