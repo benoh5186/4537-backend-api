@@ -37,7 +37,7 @@ class AuthRouter:
         """
         self.__router.add_api_route(path="/api/auth/login/", endpoint=self.__handle_login, methods=["POST"])
         self.__router.add_api_route(path="/api/auth/signup", endpoint=self.__handle_signup, methods=["POST"])
-        self.__router.add_api_route(path="/api/auth/session", endpoint=self.__handle_session, methods=["GET"]) 
+        self.__router.add_api_route(path="/api/auth/authenticate", endpoint=self.__authenticate, methods=["GET"]) 
     
     def get_router(self):
         """
@@ -47,7 +47,7 @@ class AuthRouter:
         """
         return self.__router
 
-    async def __handle_session(self, request: Request):
+    async def __authenticate(self, request: Request):
         """
         Handle session verification requests by checking for a valid JWT cookie.
         
@@ -55,20 +55,19 @@ class AuthRouter:
         :return: a JSON response indicating session status
         :raises HTTPException: if no valid JWT token is found in cookies
         """
-        jwt_token = request.cookies.get("jwt")
-        print(jwt_token)
-        if jwt_token:
+        jwt_active = AuthUtility.authenticate(request)
+        if jwt_active:
             return {JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={
-                    "message" : "in session"
+                    "message" : "authenticated"
                 }
             )}
         else:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail={
-                    "message" : "not in session"
+                    "message" : "unauthorized"
                 }
                 
             )
@@ -230,4 +229,20 @@ class AuthUtility:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED
             )
+
+    @staticmethod
+    def authenticate(request:Request):
+        """
+        Verify if the request contains a valid jwt token.
+        """
+        jwt_token  = request.cookies.get("jwt")
+        if not jwt_token:
+            return False
+        try:
+            jwt.decode(jwt_token, key=os.getenv("JWT_SECRET_KEY"), algorithms=os.getenv("JWT_ALGORITHM"))
+            return True
+        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+            return False
+
+            
 
