@@ -56,12 +56,12 @@ class AuthRouter:
         """
         jwt_active = AuthUtility.authenticate(request)
         if jwt_active:
-            return {JSONResponse(
+            return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={
                     "message" : "authenticated"
                 }
-            )}
+            )
         else:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
