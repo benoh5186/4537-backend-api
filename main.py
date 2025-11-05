@@ -33,15 +33,16 @@ class App:
         """
         self.origins = [
             "https://4537-project-frontend.netlify.app", 
-            "https://four537-ai-backend.onrender.com/", 
+            "https://four537-ai-backend.onrender.com", 
             "http://localhost:8000", # Local host server 
-            "http://127.0.0.1:5500"  # Live server
+            "http://127.0.0.1:5500", # Live server
+            "http://127.0.0.1:8080", # AI backend local host
         ]
         self.__app = FastAPI()
         # TODO: Temporary fix for CORS Middleware issue
+        self.__add_middleware()
         self.__add_exception_handler()
         self.add_routers(routers)
-        self.__add_middleware()
     
     # TODO: Temporary fix for CORS Middleware issue
     def __add_exception_handler(self):
