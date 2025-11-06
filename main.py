@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from database.database import Database
 from routers import auth, ai
 import os 
 
@@ -18,8 +19,10 @@ db_info = {"host" : os.getenv("DB_HOST"), "port" : int(os.getenv("DB_PORT")),
 "user" : os.getenv("DB_USER"), "password" : os.getenv("DB_PASSWORD"), 
 "database" : os.getenv("DATABASE")}
 
+db = Database(**db_info)
+
 routers = [
-    auth.AuthRouter(db_info).get_router(), ai.router
+    auth.AuthRouter(db).get_router(), ai.router
 ]
 
 

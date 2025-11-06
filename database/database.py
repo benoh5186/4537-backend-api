@@ -87,6 +87,13 @@ class Database:
             self.__connection.rollback()
             return False
 
+    def __decrement_api_usage(self, user_email):
+        if self.__connection is None:
+            self.start_database()
+        query = """UPDATE user SET api_usage = api_usage - 1 WHERE email = %s"""
+        self.__cursor.execute(query, (user_email,))
+        self.__connection.commit()
+
     def __create_table(self):
         """
         Create the user table in the database if it does not already exist.
@@ -100,3 +107,5 @@ class Database:
                 ) ENGINE=InnoDB;
             """
         self.__cursor.execute(query)
+
+    

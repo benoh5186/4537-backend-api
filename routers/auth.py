@@ -20,14 +20,14 @@ class AuthRouter:
     Router class handling authentication endpoints for login, signup, and session management.
     """
 
-    def __init__(self, db_info):
+    def __init__(self, db):
         """
         Initialize an AuthRouter with database connection information.
         
         :param db_info: a dictionary containing database connection parameters
         """
         self.__router = APIRouter()
-        self.__db = Database(**db_info)
+        self.__db = db
         self.__add_routes()
 
     def __add_routes(self):
