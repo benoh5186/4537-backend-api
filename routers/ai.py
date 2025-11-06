@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request, status
-from auth import AuthUtility
+from .auth import AuthUtility
 import httpx
 
 
