@@ -57,10 +57,12 @@ class AuthRouter:
         """
         jwt_active = AuthUtility.authenticate(request)
         if jwt_active:
+            payload = AuthUtility.get_jwt_payload(request)
+            is_admin = payload["is_admin"]
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={
-                    "message" : "authenticated"
+                    "is_admin" : is_admin
                 }
             )
         else:
