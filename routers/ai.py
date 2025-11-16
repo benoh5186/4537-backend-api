@@ -20,6 +20,7 @@ async def handle_ai_json(request: Request):
                 data = response.json()
                 return {"data" : data["data"]}
             else:
+                print("unsuccessful")
                 raise HTTPException(
                     # 400
                     status_code=response.status_code,
