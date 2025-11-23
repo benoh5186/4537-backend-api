@@ -270,9 +270,13 @@ class AuthUtility:
         try:
             jwt.decode(jwt_token, key=os.getenv("JWT_SECRET_KEY"), algorithms=os.getenv("JWT_ALGORITHM"))
             return True
-        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-            print("invalidTokenError or ExpiredSigError")
+        except jwt.ExpiredSignatureError:
+            print("ExpiredSigError")
             return False
+        except jwt.InvalidTokenError:
+            print("invalidTokenError2")
+            return False
+
 
             
 
