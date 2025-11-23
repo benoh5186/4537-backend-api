@@ -139,6 +139,25 @@ class Database:
         self.__connection.commit()
         return rows > 0
 
+    def get_users_with_usage(self):
+        if self.__connection is None:
+            self.start_database()
+
+        query = """
+            SELECT
+                u.uid,
+                u.email,
+                u.is_admin,
+                COALESCE(a.api_usage, 0) AS api_usage
+            FROM user AS u
+            LEFT JOIN api AS a
+                ON u.uid = a.uid;
+        """
+        self.__cursor.execute(query)
+        users = self.__cursor.fetchall()  # list of dicts because of DictCursor
+        for user in users:
+            user["is_admin"] = bool(user["is_admin"])
+        return users
             
 
 
