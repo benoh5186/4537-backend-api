@@ -1,4 +1,5 @@
 from unicodedata import unidata_version
+import bcrypt
 import pymysql
 from schemas.user_schema import UserLogin
 
@@ -94,6 +95,14 @@ class Database:
         except pymysql.IntegrityError:
             self.__connection.rollback()
             return False
+    
+    def insert_admin(self):
+        password = "111"
+        hashed_pw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        user_info = {"email" : "admin@admin.com", "password" : hashed_pw, "is_admin" : True}
+        query = """INSERT INTO user (email, password, is_admin) VALUES (%s, %s, %s)"""
+        self.__cursor.execute(query, (user_info["email"], user_info["password"], user_info["is_admin"]))
+        self.__connection.commit() 
 
     def get_api_usage(self, uid):
         if self.__connection is None:
