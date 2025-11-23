@@ -1,3 +1,4 @@
+from unicodedata import unidata_version
 import pymysql
 from schemas.user_schema import UserLogin
 
@@ -36,7 +37,6 @@ class Database:
             cursorclass=pymysql.cursors.DictCursor,
             ssl={'ssl': True})
         self.__cursor = self.__connection.cursor()
-        self.__create_table()
 
     def find_user(self, user_email):
         """
@@ -79,33 +79,31 @@ class Database:
         try:
             if self.__connection is None:
                 self.start_database()
-            query = """INSERT INTO user (email, password, is_admin) VALUES (%s, %s, %s)"""
-            self.__cursor.execute(query, (user_info["email"], user_info["password"], user_info["is_admin"]))
+            user_query = """INSERT INTO user (email, password, is_admin) VALUES (%s, %s, %s)"""
+            api_usage_query = """INSERT INTO api_usage (uid) VALUES (%s)"""
+            self.__cursor.execute(user_query, (user_info["email"], user_info["password"], user_info["is_admin"]))
+            uid = self.__cursor.lastrowid
+            self.__cursor.execute(api_usage_query, (uid,))
             self.__connection.commit() 
             return True 
         except pymysql.IntegrityError:
             self.__connection.rollback()
             return False
 
-    def __decrement_api_usage(self, user_email):
+    def get_api_usage(self, uid):
         if self.__connection is None:
             self.start_database()
-        query = """UPDATE user SET api_usage = api_usage - 1 WHERE email = %s"""
-        self.__cursor.execute(query, (user_email,))
+        query = """SELECT usage_count FROM api_usage WHERE uid = %s"""
+        self.__cursor.execute(query, (uid,))
+        usage = self.__cursor.fetchone()
+        return usage["usage_count"]
+
+    def __increment_api_usage(self, uid):
+        if self.__connection is None:
+            self.start_database()
+        query = """UPDATE api_usage SET usage_count = usage_count + 1 WHERE uid = %s"""
+        self.__cursor.execute(query, (uid,))
         self.__connection.commit()
 
-    def __create_table(self):
-        """
-        Create the user table in the database if it does not already exist.
-        """
-        query = """CREATE TABLE IF NOT EXISTS user (
-                uid INT(11) AUTO_INCREMENT PRIMARY KEY,
-                email VARCHAR(100) NOT NULL UNIQUE,
-                password VARCHAR(255) NOT NULL,
-                is_admin BOOL NOT NULL DEFAULT FALSE,
-                api_usage INT NOT NULL DEFAULT 20
-                ) ENGINE=InnoDB;
-            """
-        self.__cursor.execute(query)
 
     
