@@ -39,12 +39,9 @@ class App:
         """
         self.origins = [
             "https://4537-project-frontend.netlify.app", 
-            "https://four537-ai-backend.onrender.com", 
             "http://localhost:8000", # Local host server 
             "http://127.0.0.1:5500", # Live server
             "http://127.0.0.1:8080", # AI backend local host 
-            "http://4537-project-frontend.netlify.app", 
-            "http://four537-ai-backend.onrender.com"
         ]                       
         self.__app = FastAPI()
         # TODO: Temporary fix for CORS Middleware issue
