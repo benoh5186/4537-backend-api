@@ -104,6 +104,20 @@ class Database:
         query = """UPDATE api_usage SET usage_count = usage_count + 1 WHERE uid = %s"""
         self.__cursor.execute(query, (uid,))
         self.__connection.commit()
-
-
     
+    def change_password(self, uid, hashed_password):
+        if self.__connection is None:
+            self.start_database()
+        query = """UPDATE user SET password = %s WHERE uid = %s"""
+        self.__cursor.execute(query, (hashed_password, uid))
+        self.__connection.commit()
+
+
+    def change_email(self, uid, email):
+        if self.__connection is None:
+            self.start_database()
+        query = """UPDATE user SET email = %s WHERE uid = %s"""
+        self.__cursor.execute(query, (email, uid))
+        self.__connection.commit()
+
+
