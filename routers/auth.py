@@ -58,7 +58,7 @@ class AuthRouter:
         jwt_active = AuthUtility.authenticate(request)
         if jwt_active:
             payload = AuthUtility.get_jwt_payload(request)
-            uid = payload["sub"]
+            uid = int(payload["sub"])
             user_info = self.__db.find_user(uid)
             is_admin = user_info["is_admin"]
             api_usage = self.__db.get_api_usage(uid)
@@ -185,7 +185,7 @@ class AuthUtility:
         :return: an encoded JWT token string
         """
         payload = {
-            "sub" : user_data["uid"],
+            "sub" : str(user_data["uid"]),
             "iat" : datetime.utcnow(),
             "exp" : datetime.utcnow() + timedelta(minutes=5)
          }
@@ -225,6 +225,7 @@ class AuthUtility:
         jwt_token = request.cookies.get("jwt")
             
         if jwt_token is None:
+            print("jwt is none")
             raise HTTPException(status_code=401, detail="Not authenticated")
         try:
             payload = jwt.decode(jwt=jwt_token, key=os.getenv("JWT_SECRET_KEY"), algorithms=os.getenv("JWT_ALGORITHM"))
@@ -232,6 +233,7 @@ class AuthUtility:
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Token has expired")
         except jwt.InvalidTokenError:
+            print("invalidTokenError")
             raise HTTPException(status_code=401, detail="Invalid token")
 
     @staticmethod
@@ -264,12 +266,18 @@ class AuthUtility:
         """
         jwt_token  = request.cookies.get("jwt")
         if not jwt_token:
+            print("no jwt token")
             return False
         try:
             jwt.decode(jwt_token, key=os.getenv("JWT_SECRET_KEY"), algorithms=os.getenv("JWT_ALGORITHM"))
             return True
-        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        except jwt.ExpiredSignatureError:
+            print("ExpiredSigError")
             return False
+        except jwt.InvalidTokenError:
+            print("invalidTokenError2")
+            return False
+
         
     @staticmethod 
     def increase_api_usage(request: Request, db):
