@@ -268,7 +268,7 @@ class AuthUtility:
 
     @staticmethod 
     def increase_api_usage(payload, db):
-        uid = payload["sub"]   
+        uid = int(payload["sub"]  ) 
         db.increment_api_usage(uid)
 
     @staticmethod
@@ -279,7 +279,7 @@ class AuthUtility:
 
     @staticmethod
     def check_is_admin(payload, db):
-        uid = payload["sub"]
+        uid = int(payload["sub"])
         user = db.find_user(uid)
         if user:
             return bool(user["is_admin"])
