@@ -20,6 +20,10 @@ class AuthRouter:
     Router class handling authentication endpoints for login, signup, and session management.
     """
 
+    __AUTHENTICATE_ENDPOINT = "/api/v1/auth/authenticate"
+    __LOGIN_ENDPOINT = "/api/v1/auth/login"
+    __SIGNUP_ENDPOINT = "/api/v1/auth/signup"
+
     def __init__(self, db):
         """
         Initialize an AuthRouter with database connection information.
@@ -34,9 +38,9 @@ class AuthRouter:
         """
         Register authentication API routes to the router.
         """
-        self.__router.add_api_route(path="/api/v1/auth/login", endpoint=self.__handle_login, methods=["POST"])
-        self.__router.add_api_route(path="/api/v1/auth/signup", endpoint=self.__handle_signup, methods=["POST"])
-        self.__router.add_api_route(path="/api/v1/auth/authenticate", endpoint=self.__authenticate, methods=["GET"]) 
+        self.__router.add_api_route(path=self.__LOGIN_ENDPOINT, endpoint=self.__handle_login, methods=["POST"])
+        self.__router.add_api_route(path=self.__SIGNUP_ENDPOINT, endpoint=self.__handle_signup, methods=["POST"])
+        self.__router.add_api_route(path=self.__AUTHENTICATE_ENDPOINT, endpoint=self.__authenticate, methods=["GET"]) 
         # self.__router.add_api_route(path="/{full_path:path}", endpoint=self.__authenticate, methods=["OPTIONS"]) 
 
     def get_router(self):
@@ -56,13 +60,16 @@ class AuthRouter:
         :raises HTTPException: if no valid JWT token is found in cookies
         """
         payload = AuthUtility.authenticate(request)
+        print(f"the payload is {payload}")
+        endpoint_info = {"method" : "GET", "endpoint" : self.__AUTHENTICATE_ENDPOINT}
+        self.__db.update_endpoint(endpoint_info)
         if payload:
             uid = int(payload["sub"])
             user_info = self.__db.find_user(uid)
             is_admin = bool(user_info["is_admin"])
             api_usage = self.__db.get_api_usage(uid)
             email = user_info["email"]
-
+            
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={
@@ -72,13 +79,12 @@ class AuthRouter:
                 }
             )
         else:
-            print("no payload")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail={
                     "message" : "unauthorized"
                 }
-
+                
             )
 
     async def __handle_login(self, request: Request, response: Response):
@@ -91,12 +97,13 @@ class AuthRouter:
         :raises HTTPException: if validation fails or credentials are incorrect
         """
         try:
+            endpoint_info = {"method" : "POST", "endpoint" : self.__LOGIN_ENDPOINT}
+            self.__db.update_endpoint(endpoint_info)
             user_info = await request.json()
             login_schema = UserLogin(**user_info)
-
+            
             user = AuthUtility.validate_login(login_schema, self.__db)
             AuthUtility.create_session_cookie(user, response)
-
             print(response.headers.get("set_cookie"))
             return {"message" : "login success", "is_admin" : user["is_admin"]}
         except ValidationError as error:
@@ -114,7 +121,7 @@ class AuthRouter:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-
+            
     async def __handle_signup(self, request: Request):
         """
         Handle user registration requests by validating input and creating a new user account.
@@ -124,14 +131,15 @@ class AuthRouter:
         :raises HTTPException: if validation fails or user already exists
         """
         try:
+            endpoint_info = {"method" : "POST", "endpoint" : self.__SIGNUP_ENDPOINT}
+            self.__db.update_endpoint(endpoint_info)
             user_data = await request.json()
             signup_schema = UserCreate(**user_data)
-
+            
             hashed_password = bcrypt.hashpw(signup_schema.password.encode("utf-8"), bcrypt.gensalt()).decode('utf-8')
             hashed_user = {"email" : signup_schema.email, "password" : hashed_password, "is_admin" : signup_schema.is_admin}
             inserted = self.__db.insert_user(hashed_user)
-
-
+            
             if inserted:
                 return JSONResponse(
                     status_code=status.HTTP_201_CREATED,
@@ -154,7 +162,7 @@ class AuthRouter:
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=detail
             )
-
+            
     # # TODO: Make a cleaner version of the explicit preflight handler
     # async def __preflight_handler(request: Request, full_path: str):
     #     response = JSONResponse(content={"ok": True})
@@ -248,7 +256,6 @@ class AuthUtility:
         """
         jwt_token = request.cookies.get("jwt")
         if jwt_token is None:
-            print("jwt is none")
             raise HTTPException(status_code=401, detail="Not authenticated")
 
         try:
@@ -259,24 +266,21 @@ class AuthUtility:
             )
             return payload
         except jwt.ExpiredSignatureError:
-            print("jwt is expired")
             raise HTTPException(status_code=401, detail="Token has expired")
         except jwt.InvalidTokenError:
-            print("jwt is invalid")
             raise HTTPException(status_code=401, detail="Invalid token")
-
-
+        
+        
     @staticmethod 
     def increase_api_usage(payload, db):
-        uid = int(payload["sub"]  ) 
+        uid = int(payload["sub"])   
         db.increment_api_usage(uid)
-
+        
     @staticmethod
     def get_api_usage(payload, db):
         uid = int(payload["sub"])
-        print(f"The UID is {uid}")
         return db.get_api_usage(uid)
-
+    
     @staticmethod
     def check_is_admin(payload, db):
         uid = int(payload["sub"])
@@ -286,4 +290,4 @@ class AuthUtility:
         else:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
-
+            
