@@ -58,11 +58,16 @@ class AuthRouter:
         jwt_active = AuthUtility.authenticate(request)
         if jwt_active:
             payload = AuthUtility.get_jwt_payload(request)
-            is_admin = payload["is_admin"]
+            uid = payload["sub"]
+            user_info = self.__db.find_user(uid)
+            is_admin = user_info["is_admin"]
+            api_usage = self.__db.get_api_usage(uid)
+            
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={
-                    "is_admin" : is_admin
+                    "is_admin" : is_admin,
+                    "api_usage" : api_usage
                 }
             )
         else:
