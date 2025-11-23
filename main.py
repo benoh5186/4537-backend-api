@@ -22,7 +22,7 @@ db_info = {"host" : os.getenv("DB_HOST"), "port" : int(os.getenv("DB_PORT")),
 db = Database(**db_info)
 
 routers = [
-    auth.AuthRouter(db).get_router(), ai.router
+    auth.AuthRouter(db).get_router(), ai.AI(db).get_router()
 ]
 
 

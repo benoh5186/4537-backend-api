@@ -10,6 +10,9 @@ class AI:
         
     def __add_routes(self):
         self.__router.add_api_route(path="/api/service/ai", endpoint=self.__handle_ai_json, methods=["POST"])
+    
+    def get_router(self):
+        return self.__router
         
     async def __handle_ai_json(self, request: Request):
         payload = AuthUtility.authenticate(request)
