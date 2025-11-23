@@ -224,6 +224,7 @@ class AuthUtility:
         jwt_token = request.cookies.get("jwt")
             
         if jwt_token is None:
+            print("no jwt")
             raise HTTPException(status_code=401, detail="Not authenticated")
         try:
             payload = jwt.decode(jwt=jwt_token, key=os.getenv("JWT_SECRET_KEY"), algorithms=os.getenv("JWT_ALGORITHM"))
@@ -231,6 +232,7 @@ class AuthUtility:
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Token has expired")
         except jwt.InvalidTokenError:
+            print("invalid jwt")
             raise HTTPException(status_code=401, detail="Invalid token")
 
     @staticmethod
@@ -263,11 +265,13 @@ class AuthUtility:
         """
         jwt_token  = request.cookies.get("jwt")
         if not jwt_token:
+            print("no jwt token")
             return False
         try:
             jwt.decode(jwt_token, key=os.getenv("JWT_SECRET_KEY"), algorithms=os.getenv("JWT_ALGORITHM"))
             return True
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+            print("invalid jwt token")
             return False
 
             
