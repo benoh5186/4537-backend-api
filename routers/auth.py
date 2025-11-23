@@ -58,7 +58,7 @@ class AuthRouter:
         jwt_active = AuthUtility.authenticate(request)
         if jwt_active:
             payload = AuthUtility.get_jwt_payload(request)
-            uid = payload["sub"]
+            uid = int(payload["sub"])
             user_info = self.__db.find_user(uid)
             is_admin = user_info["is_admin"]
             api_usage = self.__db.get_api_usage(uid)
@@ -184,7 +184,7 @@ class AuthUtility:
         :return: an encoded JWT token string
         """
         payload = {
-            "sub" : user_data["uid"],
+            "sub" : str(user_data["uid"]),
             "iat" : datetime.utcnow(),
             "exp" : datetime.utcnow() + timedelta(minutes=5)
          }
