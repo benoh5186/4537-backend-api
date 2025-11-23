@@ -86,6 +86,7 @@ class AuthRouter:
         try:
             user_info = await request.json()
             login_schema = UserLogin(**user_info)
+            
             user = AuthUtility.validate_login(login_schema, self.__db)
             AuthUtility.create_session_cookie(user, response)
             print(response.headers.get("set_cookie"))
@@ -117,9 +118,11 @@ class AuthRouter:
         try:
             user_data = await request.json()
             signup_schema = UserCreate(**user_data)
-            hashed_password = bcrypt.hashpw(signup_schema.password.encode("utf-8"), bcrypt.gensalt())
+            
+            hashed_password = bcrypt.hashpw(signup_schema.password.encode("utf-8"), bcrypt.gensalt()).decode('utf-8')
             hashed_user = {"email" : signup_schema.email, "password" : hashed_password, "is_admin" : signup_schema.is_admin}
             inserted = self.__db.insert_user(hashed_user)
+            
             if inserted:
                 return JSONResponse(
                     status_code=status.HTTP_201_CREATED,
@@ -129,7 +132,8 @@ class AuthRouter:
                 )
             else:
                 raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="User already exists"
                 )
         except ValidationError as error:
             detail = {"email" : True, "password" : True}
@@ -176,7 +180,7 @@ class AuthUtility:
         """
         payload = {
             "email" : user_data["email"],
-            "api_usage" : user_data["api_usage"],
+            "api_usage" : user_data["uid"],
             "is_admin" : user_data["is_admin"],
             "iat" : datetime.utcnow(),
             "exp" : datetime.utcnow() + timedelta(minutes=5)
