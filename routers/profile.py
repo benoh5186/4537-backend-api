@@ -28,6 +28,7 @@ class ProfileRouter:
                 payload = AuthUtility.get_jwt_payload(request)
                 uid = int(payload["sub"])
                 user_data = await request.json()
+                print(user_data)
                 password_schema = Password(**user_data)
                 hashed_password = bcrypt.hashpw(password_schema.password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
                 self.__db.change_password(uid, hashed_password)
