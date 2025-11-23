@@ -22,10 +22,9 @@ class ProfileRouter:
 
 
     async def __change_password(self, request: Request):
-        jwt_active = AuthUtility.authenticate(request)
+        payload = AuthUtility.authenticate(request)
         try:
-            if jwt_active:
-                payload = AuthUtility.get_jwt_payload(request)
+            if payload:
                 uid = int(payload["sub"])
                 user_data = await request.json()
                 password_schema = Password(**user_data)
