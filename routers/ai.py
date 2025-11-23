@@ -14,6 +14,7 @@ class AI:
         
     def __add_routes(self):
         self.__router.add_api_route(path=self.__AI_TEXT_TO_JSON_ENDPOINT, endpoint=self.__handle_ai_json, methods=["POST"])
+        self.__router.add_api_route(path=self.__AI_SCHEMA_TO_JSON_ENDPOINT, endpoint=self.__handle_ai_schema_json, methods=["POST"])
     
     def get_router(self):
         return self.__router
