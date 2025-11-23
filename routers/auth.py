@@ -60,6 +60,7 @@ class AuthRouter:
         :raises HTTPException: if no valid JWT token is found in cookies
         """
         payload = AuthUtility.authenticate(request)
+        print(payload)
         endpoint_info = {"method" : "GET", "endpoint" : self.__AUTHENTICATE_ENDPOINT}
         self.__db.update_endpoint(endpoint_info)
         if payload:
@@ -96,8 +97,6 @@ class AuthRouter:
         :raises HTTPException: if validation fails or credentials are incorrect
         """
         try:
-            endpoint_info = {"method" : "POST", "endpoint" : self.__LOGIN_ENDPOINT}
-            self.__db.update_endpoint(endpoint_info)
             user_info = await request.json()
             login_schema = UserLogin(**user_info)
             
@@ -105,6 +104,8 @@ class AuthRouter:
             AuthUtility.create_session_cookie(user, response)
             
             print(response.headers.get("set_cookie"))
+            endpoint_info = {"method" : "POST", "endpoint" : self.__LOGIN_ENDPOINT}
+            self.__db.update_endpoint(endpoint_info)
             return {"message" : "login success", "is_admin" : user["is_admin"]}
         except ValidationError as error:
             detail = {"email" : True, "password" : True}
