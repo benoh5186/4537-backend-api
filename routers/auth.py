@@ -72,6 +72,7 @@ class AuthRouter:
                 }
             )
         else:
+            print("no payload")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail={
@@ -247,6 +248,7 @@ class AuthUtility:
         """
         jwt_token = request.cookies.get("jwt")
         if jwt_token is None:
+            print("jwt is none")
             raise HTTPException(status_code=401, detail="Not authenticated")
 
         try:
@@ -257,8 +259,10 @@ class AuthUtility:
             )
             return payload
         except jwt.ExpiredSignatureError:
+            print("jwt is expired")
             raise HTTPException(status_code=401, detail="Token has expired")
         except jwt.InvalidTokenError:
+            print("jwt is invalid")
             raise HTTPException(status_code=401, detail="Invalid token")
 
 
