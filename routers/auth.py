@@ -95,12 +95,10 @@ class AuthRouter:
             login_schema = UserLogin(**user_info)
 
             user = AuthUtility.validate_login(login_schema, self.__db)
-            resp = JSONResponse(
-                {"message": "login success", "is_admin": user["is_admin"]},
-                status_code=200
-            )
-            AuthUtility.create_session_cookie(user, resp)
-            return resp
+            AuthUtility.create_session_cookie(user, response)
+
+            print(response.headers.get("set_cookie"))
+            return {"message" : "login success", "is_admin" : user["is_admin"]}
         except ValidationError as error:
             detail = {"email" : True, "password" : True}
             field_errors = [err['loc'][-1] for err in error.errors()]
