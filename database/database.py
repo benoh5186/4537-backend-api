@@ -130,6 +130,15 @@ class Database:
         except pymysql.IntegrityError:
             self.__connection.rollback()
             return False
+        
+    def delete_user(self, uid):
+        if self.__connection is None:
+            self.start_database()
+        query = "DELETE FROM user WHERE uid = %s"
+        rows = self.__cursor.execute(query, (uid,))
+        self.__connection.commit()
+        return rows > 0
+
             
 
 

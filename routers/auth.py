@@ -275,8 +275,10 @@ class AuthUtility:
     def check_is_admin(payload, db):
         uid = payload["sub"]
         user = db.find_user(uid)
-        return bool(user["is_admin"])
-        
+        if user:
+            return bool(user["is_admin"])
+        else:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
             
 
