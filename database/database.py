@@ -165,19 +165,23 @@ class Database:
 
         query = """
             SELECT
-                u.uid,
-                u.email,
-                u.is_admin,
-                COALESCE(a.api_usage, 0) AS api_usage
-            FROM user AS u
-            LEFT JOIN api AS a
-                ON u.uid = a.uid;
+                user.uid,
+                user.email,
+                user.is_admin,
+                api_usage.usage_count AS api_usage
+            FROM user
+            JOIN api_usage
+                ON user.uid = api_usage.uid;
+
         """
         self.__cursor.execute(query)
         users = self.__cursor.fetchall()  # list of dicts because of DictCursor
+
         for user in users:
             user["is_admin"] = bool(user["is_admin"])
+
         return users
+
             
 
 
