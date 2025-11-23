@@ -7,6 +7,8 @@ import bcrypt
 
 
 class ProfileRouter:
+    __CHANGE_PASSWORD_ENDPOINT = "/api/v1/user/password"
+    __CHANGE_EMAIL_ENDPOINT = "/api/v1/user/email"
     def __init__(self, db):
         self.__router = APIRouter()
         self.__db = db 
@@ -14,14 +16,16 @@ class ProfileRouter:
 
 
     def __add_routes(self):
-        self.__router.add_api_route(path="/api/v1/user/password", endpoint=self.__change_password, methods=["PATCH"])
-        self.__router.add_api_route(path="/api/v1/user/email", endpoint=self.__change_email, methods=["PATCH"])
+        self.__router.add_api_route(path=self.__CHANGE_PASSWORD_ENDPOINT, endpoint=self.__change_password, methods=["PATCH"])
+        self.__router.add_api_route(path=self.__CHANGE_EMAIL_ENDPOINT, endpoint=self.__change_email, methods=["PATCH"])
     
     def get_router(self):
         return self.__router
 
 
     async def __change_password(self, request: Request):
+        endpoint_info = {"method" : "PATCH", "endpoint" : self.__CHANGE_PASSWORD_ENDPOINT}
+        self.__db.update_endpoint(endpoint_info)
         payload = AuthUtility.authenticate(request)
         try:
             if payload:
@@ -40,6 +44,8 @@ class ProfileRouter:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     async def __change_email(self, request: Request):
+        endpoint_info = {"method" : "PATCH", "endpoint" : self.__CHANGE_EMAIL_ENDPOINT}
+        self.__db.update_endpoint(endpoint_info)
         payload = AuthUtility.authenticate(request)
         try:
             if payload:

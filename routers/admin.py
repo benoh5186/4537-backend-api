@@ -3,19 +3,24 @@ from .auth import AuthUtility
 import httpx
 
 class Admin:
+    __DELETE_USER_ENDPOINT = "/api/admin/user/{uid}"
+    __GET_ALL_USERS_ENDPOINT = "/api/admin/users"
+
     def __init__(self, db):
         self.__router = APIRouter()
         self.__db = db
         self.__add_routes()
         
     def __add_routes(self):
-        self.__router.add_api_route(path="/api/admin/user/{uid}", endpoint=self.__handle_user_delete, methods=["DELETE"])
-        self.__router.add_api_route(path="/api/admin/users", endpoint=self.__handle_get_users, methods=["GET"])
+        self.__router.add_api_route(path=self.__DELETE_USER_ENDPOINT, endpoint=self.__handle_user_delete, methods=["DELETE"])
+        self.__router.add_api_route(path=self.__GET_ALL_USERS_ENDPOINT, endpoint=self.__handle_get_users, methods=["GET"])
         
     def get_router(self):
         return self.__router
     
     async def __handle_user_delete(self, uid: int, request: Request):
+        endpoint_info = {"method" : "DELETE", "endpoint" : self.__DELETE_USER_ENDPOINT}
+        self.__db.update_endpoint(endpoint_info)
         payload = AuthUtility.authenticate(request)
         is_admin = AuthUtility.check_is_admin(payload, self.__db)
         
@@ -30,6 +35,8 @@ class Admin:
         return Response(status_code=status.HTTP_204_NO_CONTENT)
         
     async def __handle_get_users(self, request: Request):
+        endpoint_info = {"method" : "GET", "endpoint" : self.__GET_ALL_USERS_ENDPOINT}
+        self.__db.update_endpoint(endpoint_info)
         payload = AuthUtility.authenticate(request)
         is_admin = AuthUtility.check_is_admin(payload, self.__db)
         
