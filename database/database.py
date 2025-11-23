@@ -38,7 +38,7 @@ class Database:
             ssl={'ssl': True})
         self.__cursor = self.__connection.cursor()
 
-    def find_user(self, user_email):
+    def find_user(self, uid):
         """
         Find and retrieve a user from the database by email address.
         
@@ -47,8 +47,8 @@ class Database:
         """
         if self.__connection is None:
             self.start_database()
-        query = "SELECT * FROM user WHERE  email = %s"
-        self.__cursor.execute(query, (user_email, ))
+        query = "SELECT * FROM user WHERE  uid = %s"
+        self.__cursor.execute(query, (uid, ))
         user = self.__cursor.fetchone()
         return user 
 
