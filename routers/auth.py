@@ -20,6 +20,10 @@ class AuthRouter:
     Router class handling authentication endpoints for login, signup, and session management.
     """
 
+    __AUTHENTICATE_ENDPOINT = "/api/v1/auth/authenticate"
+    __LOGIN_ENDPOINT = "/api/v1/auth/login"
+    __SIGNUP_ENDPOINT = "/api/v1/auth/signup"
+
     def __init__(self, db):
         """
         Initialize an AuthRouter with database connection information.
@@ -34,9 +38,9 @@ class AuthRouter:
         """
         Register authentication API routes to the router.
         """
-        self.__router.add_api_route(path="/api/auth/login", endpoint=self.__handle_login, methods=["POST"])
-        self.__router.add_api_route(path="/api/auth/signup", endpoint=self.__handle_signup, methods=["POST"])
-        self.__router.add_api_route(path="/api/auth/authenticate", endpoint=self.__authenticate, methods=["GET"]) 
+        self.__router.add_api_route(path=self.__LOGIN_ENDPOINT, endpoint=self.__handle_login, methods=["POST"])
+        self.__router.add_api_route(path=self.__SIGNUP_ENDPOINT, endpoint=self.__handle_signup, methods=["POST"])
+        self.__router.add_api_route(path=self.__AUTHENTICATE_ENDPOINT, endpoint=self.__authenticate, methods=["GET"]) 
         # self.__router.add_api_route(path="/{full_path:path}", endpoint=self.__authenticate, methods=["OPTIONS"]) 
 
     def get_router(self):
@@ -56,6 +60,8 @@ class AuthRouter:
         :raises HTTPException: if no valid JWT token is found in cookies
         """
         payload = AuthUtility.authenticate(request)
+        endpoint_info = {"method" : "GET", "endpoint" : self.__AUTHENTICATE_ENDPOINT}
+        self.__db.update_endpoint(endpoint_info)
         if payload:
             uid = int(payload["sub"])
             user_info = self.__db.find_user(uid)
@@ -90,6 +96,8 @@ class AuthRouter:
         :raises HTTPException: if validation fails or credentials are incorrect
         """
         try:
+            endpoint_info = {"method" : "POST", "endpoint" : self.__LOGIN_ENDPOINT}
+            self.__db.update_endpoint(endpoint_info)
             user_info = await request.json()
             login_schema = UserLogin(**user_info)
             
@@ -123,6 +131,8 @@ class AuthRouter:
         :raises HTTPException: if validation fails or user already exists
         """
         try:
+            endpoint_info = {"method" : "POST", "endpoint" : self.__SIGNUP_ENDPOINT}
+            self.__db.update_endpoint(endpoint_info)
             user_data = await request.json()
             signup_schema = UserCreate(**user_data)
             
