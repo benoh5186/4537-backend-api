@@ -60,7 +60,7 @@ class AuthRouter:
         :raises HTTPException: if no valid JWT token is found in cookies
         """
         payload = AuthUtility.authenticate(request)
-        print(payload)
+        print(f"the payload is {payload}")
         endpoint_info = {"method" : "GET", "endpoint" : self.__AUTHENTICATE_ENDPOINT}
         self.__db.update_endpoint(endpoint_info)
         if payload:
