@@ -62,12 +62,14 @@ class AuthRouter:
             user_info = self.__db.find_user(uid)
             is_admin = user_info["is_admin"]
             api_usage = self.__db.get_api_usage(uid)
+            email = user_info["email"]
             
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={
                     "is_admin" : is_admin,
-                    "api_usage" : api_usage
+                    "api_usage" : api_usage,
+                    "email" : email
                 }
             )
         else:
