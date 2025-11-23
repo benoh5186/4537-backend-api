@@ -28,7 +28,7 @@ class ProfileRouter:
                 uid = int(payload["sub"])
                 user_data = await request.json()
                 password_schema = Password(**user_data)
-                if self.__check_password_equality(request, password_schema.password):
+                if self.__check_password_equality(payload, password_schema.password):
                     raise HTTPException(status_code=status.HTTP_409_CONFLICT)
                 hashed_password = bcrypt.hashpw(password_schema.password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
                 self.__db.change_password(uid, hashed_password)
@@ -40,14 +40,13 @@ class ProfileRouter:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     async def __change_email(self, request: Request):
-        jwt_active = AuthUtility.authenticate(request)
+        payload = AuthUtility.authenticate(request)
         try:
-            if jwt_active:
-                payload = AuthUtility.get_jwt_payload(request)
+            if payload:
                 uid = int(payload["sub"])
                 user_data = await request.json()
                 email_schema = Email(**user_data)
-                if self.__check_email_equality(request, email_schema.email):
+                if self.__check_email_equality(payload, email_schema.email):
                     raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={"same_email" : True})
                 is_changed = self.__db.change_email(uid, email_schema.email)
                 if is_changed:
@@ -59,16 +58,14 @@ class ProfileRouter:
         except ValidationError:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
     
-    def __check_email_equality(self, request: Request, new_email):
-        payload = AuthUtility.get_jwt_payload(request)
+    def __check_email_equality(self, payload, new_email):
         uid = int(payload["sub"])
         user_info = self.__db.find_user(uid)
         if new_email == user_info["email"]:
             return True
         return False 
 
-    def __check_password_equality(self, request: Request, new_password):
-        payload = AuthUtility.get_jwt_payload(request)
+    def __check_password_equality(self, payload, new_password):
         uid = int(payload["sub"])
         user_info = self.__db.find_user(uid)
         new_password_bytes = new_password.encode('utf-8')
