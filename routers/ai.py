@@ -3,18 +3,21 @@ from .auth import AuthUtility
 import httpx
 
 class AI:
+    __AI_TEXT_TO_JSON_ENDPOINT = "/api/v1/service/ai/text"
     def __init__(self, db):
         self.__router = APIRouter()
         self.__db = db
         self.__add_routes()
         
     def __add_routes(self):
-        self.__router.add_api_route(path="/api/v1/service/ai", endpoint=self.__handle_ai_json, methods=["POST"])
+        self.__router.add_api_route(path=self.__AI_TEXT_TO_JSON_ENDPOINT, endpoint=self.__handle_ai_json, methods=["POST"])
     
     def get_router(self):
         return self.__router
         
     async def __handle_ai_json(self, request: Request):
+        endpoint_info = {"method" : "POST", "endpoint" : self.__AI_TEXT_TO_JSON_ENDPOINT}
+        self.__db.update_endpoint(endpoint_info)
         payload = AuthUtility.authenticate(request)
         AuthUtility.increase_api_usage(payload, self.__db)
         api_usage = AuthUtility.get_api_usage(payload, self.__db)
