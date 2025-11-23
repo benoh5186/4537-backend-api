@@ -179,9 +179,7 @@ class AuthUtility:
         :return: an encoded JWT token string
         """
         payload = {
-            "email" : user_data["email"],
-            "api_usage" : user_data["uid"],
-            "is_admin" : user_data["is_admin"],
+            "sub" : user_data["uid"],
             "iat" : datetime.utcnow(),
             "exp" : datetime.utcnow() + timedelta(minutes=5)
          }
@@ -218,8 +216,11 @@ class AuthUtility:
         :param request: HTTP request
         :return: payload data from decoding jwt
         """
+        jwt_token = request.cookies.get("jwt")
+            
+        if jwt_token is None:
+            raise HTTPException(status_code=401, detail="Not authenticated")
         try:
-            jwt_token = request.cookies.get("jwt")
             payload = jwt.decode(jwt=jwt_token, key=os.getenv("JWT_SECRET_KEY"), algorithms=os.getenv("JWT_ALGORITHM"))
             return payload 
         except jwt.ExpiredSignatureError:
