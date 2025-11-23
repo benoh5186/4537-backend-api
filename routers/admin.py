@@ -27,10 +27,7 @@ class Admin:
                 detail="Admin access required",
             )
         
-        return Response(
-            status_code=status.HTTP_200_OK, 
-            detail="User deleted"
-            )
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
         
     async def __handle_get_users(self, request: Request):
         payload = AuthUtility.authenticate(request)
