@@ -99,9 +99,18 @@ class Database:
     def get_api_usage(self, uid):
         if self.__connection is None:
             self.start_database()
+
         query = """SELECT usage_count FROM api_usage WHERE uid = %s"""
         self.__cursor.execute(query, (uid,))
         usage = self.__cursor.fetchone()
+
+        if usage is None:
+            # No row yet → create one with default 0
+            insert_query = """INSERT INTO api_usage (uid, usage_count) VALUES (%s, 0)"""
+            self.__cursor.execute(insert_query, (uid,))
+            self.__connection.commit()
+            return 0
+
         return usage["usage_count"]
 
     def increment_api_usage(self, uid):
@@ -135,6 +144,10 @@ class Database:
     def delete_user(self, uid):
         if self.__connection is None:
             self.start_database()
+
+        # Delete dependent rows first
+        self.__cursor.execute("DELETE FROM api_usage WHERE uid = %s", (uid,))
+
         query = "DELETE FROM user WHERE uid = %s"
         rows = self.__cursor.execute(query, (uid,))
         self.__connection.commit()
