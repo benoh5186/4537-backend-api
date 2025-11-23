@@ -28,14 +28,14 @@ class ProfileRouter:
                 payload = AuthUtility.get_jwt_payload(request)
                 uid = int(payload["sub"])
                 user_data = await request.json()
-                print(user_data)
                 password_schema = Password(**user_data)
                 hashed_password = bcrypt.hashpw(password_schema.password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
                 self.__db.change_password(uid, hashed_password)
                 return {"message" : "password change success"}
             else:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-        except ValidationError:
+        except ValidationError as e:
+            print(e)
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     async def __change_email(self, request: Request):
