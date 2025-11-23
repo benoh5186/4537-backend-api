@@ -36,7 +36,6 @@ class Database:
             cursorclass=pymysql.cursors.DictCursor,
             ssl={'ssl': True})
         self.__cursor = self.__connection.cursor()
-        self.__create_table()
 
     def find_user(self, user_email):
         """
@@ -94,18 +93,5 @@ class Database:
         self.__cursor.execute(query, (user_email,))
         self.__connection.commit()
 
-    def __create_table(self):
-        """
-        Create the user table in the database if it does not already exist.
-        """
-        query = """CREATE TABLE IF NOT EXISTS user (
-                uid INT(11) AUTO_INCREMENT PRIMARY KEY,
-                email VARCHAR(100) NOT NULL UNIQUE,
-                password VARCHAR(255) NOT NULL,
-                is_admin BOOL NOT NULL DEFAULT FALSE,
-                api_usage INT NOT NULL DEFAULT 20
-                ) ENGINE=InnoDB;
-            """
-        self.__cursor.execute(query)
 
     
