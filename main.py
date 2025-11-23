@@ -3,7 +3,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from database.database import Database
-from routers import auth, ai, profile
+from routers import auth, ai, profile, admin
 import os 
 
 """
@@ -24,7 +24,8 @@ db = Database(**db_info)
 routers = [
     auth.AuthRouter(db).get_router(), 
     ai.AI(db).get_router(),
-    profile.ProfileRouter(db).get_router()
+    profile.ProfileRouter(db).get_router(),
+    admin.Admin(db).get_router()
 ]
 
 
@@ -44,7 +45,7 @@ class App:
             "http://127.0.0.1:8080", # AI backend local host 
             "http://4537-project-frontend.netlify.app", 
             "http://four537-ai-backend.onrender.com"
-        ]
+        ]                       
         self.__app = FastAPI()
         # TODO: Temporary fix for CORS Middleware issue
         self.__add_middleware()
