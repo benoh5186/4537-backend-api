@@ -274,7 +274,7 @@ class AuthUtility:
     @staticmethod
     def get_api_usage(payload, db):
         uid = int(payload["sub"])
-        print(uid)
+        print(f"The UID is {uid}")
         return db.get_api_usage(uid)
 
     @staticmethod
