@@ -3,8 +3,8 @@ from .auth import AuthUtility
 import httpx
 
 class Admin:
-    __DELETE_USER_ENDPOINT = "/api/admin/user/{uid}"
-    __GET_ALL_USERS_ENDPOINT = "/api/admin/users"
+    __DELETE_USER_ENDPOINT = "/api/v1/admin/user/{uid}"
+    __GET_ALL_USERS_ENDPOINT = "/api/v1/admin/users"
 
     def __init__(self, db):
         self.__router = APIRouter()
