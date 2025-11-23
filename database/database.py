@@ -119,10 +119,17 @@ class Database:
 
 
     def change_email(self, uid, email):
+
         if self.__connection is None:
             self.start_database()
-        query = """UPDATE user SET email = %s WHERE uid = %s"""
-        self.__cursor.execute(query, (email, uid))
-        self.__connection.commit()
+        try:
+            query = """UPDATE user SET email = %s WHERE uid = %s"""
+            self.__cursor.execute(query, (email, uid))
+            self.__connection.commit()
+            return True
+        except pymysql.IntegrityError:
+            self.__connection.rollback()
+            return False
+            
 
 

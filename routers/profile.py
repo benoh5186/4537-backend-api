@@ -46,8 +46,11 @@ class ProfileRouter:
                 uid = int(payload["sub"])
                 user_data = await request.json()
                 email_schema = Email(**user_data)
-                self.__db.change_email(uid, email_schema.email)
-                return {"message" : "email change success", "new_email" : email_schema.email}
+                is_changed = self.__db.change_email(uid, email_schema.email)
+                if is_changed:
+                    return {"message" : "email change success", "new_email" : email_schema.email}
+                else:
+                    raise HTTPException(status_code=status.HTTP_409_CONFLICT)
             else:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
         except ValidationError:
