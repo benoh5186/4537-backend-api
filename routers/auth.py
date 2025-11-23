@@ -55,8 +55,8 @@ class AuthRouter:
         :return: a JSON response indicating session status
         :raises HTTPException: if no valid JWT token is found in cookies
         """
-        jwt_active = AuthUtility.authenticate(request)
-        if jwt_active:
+        payload = AuthUtility.authenticate(request)
+        if payload:
             payload = AuthUtility.get_jwt_payload(request)
             uid = int(payload["sub"])
             user_info = self.__db.find_user(uid)
@@ -261,26 +261,6 @@ class AuthUtility:
 
     @staticmethod
     def authenticate(request:Request):
-        """
-        Verify if the request contains a valid jwt token.
-        """
-        jwt_token  = request.cookies.get("jwt")
-        if not jwt_token:
-            print("no jwt token")
-            return False
-        try:
-            jwt.decode(jwt_token, key=os.getenv("JWT_SECRET_KEY"), algorithms=os.getenv("JWT_ALGORITHM"))
-            return True
-        except jwt.ExpiredSignatureError:
-            print("ExpiredSigError")
-            return False
-        except jwt.InvalidTokenError:
-            print("invalidTokenError2")
-            return False
-
-        
-    @staticmethod 
-    def increase_api_usage(request: Request, db):
         jwt_token = request.cookies.get("jwt")
         if jwt_token is None:
             raise HTTPException(status_code=401, detail="Not authenticated")
@@ -291,14 +271,22 @@ class AuthUtility:
                 key=os.getenv("JWT_SECRET_KEY"),
                 algorithms=[os.getenv("JWT_ALGORITHM")],
             )
+            return payload
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Token has expired")
         except jwt.InvalidTokenError:
             raise HTTPException(status_code=401, detail="Invalid token")
-
+        
+        
+    @staticmethod 
+    def increase_api_usage(payload, db):
         uid = payload["sub"]   
-
         db.increment_api_usage(uid)
+        
+    @staticmethod
+    def get_api_usage(payload, db):
+        uid = payload["sub"]
+        return db.get_api_usage(uid)
 
             
 

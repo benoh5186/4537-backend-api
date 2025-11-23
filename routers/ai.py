@@ -11,9 +11,11 @@ class AI:
     def __add_routes(self):
         self.__router.add_api_route(path="/api/service/ai", endpoint=self.__handle_ai_json, methods=["POST"])
         
-    async def __handle_ai_json(request: Request):
-        is_auth = AuthUtility.authenticate(request)
-        if is_auth:
+    async def __handle_ai_json(self, request: Request):
+        payload = AuthUtility.authenticate(request)
+        AuthUtility.increase_api_usage(payload, self.__db)
+        api_usage = AuthUtility.get_api_usage(payload, self.__db)
+        if payload:
             body = await request.json()
             async with httpx.AsyncClient() as client:
                 response = await client.post(
@@ -22,7 +24,7 @@ class AI:
                 )
                 if response.is_success:
                     data = response.json()
-                    return {"data" : data["data"]}
+                    return {"data" : data["data"], "api_usage" : api_usage}
                 else:
                     print("unsuccessful")
                     raise HTTPException(
