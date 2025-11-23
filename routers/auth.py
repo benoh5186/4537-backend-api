@@ -129,7 +129,6 @@ class AuthRouter:
             hashed_password = bcrypt.hashpw(signup_schema.password.encode("utf-8"), bcrypt.gensalt()).decode('utf-8')
             hashed_user = {"email" : signup_schema.email, "password" : hashed_password, "is_admin" : signup_schema.is_admin}
             inserted = self.__db.insert_user(hashed_user)
-            self.__db.insert_admin()
             
             if inserted:
                 return JSONResponse(
