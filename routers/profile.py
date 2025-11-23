@@ -1,5 +1,8 @@
 from fastapi import APIRouter, HTTPException, Request, status
+from pydantic import ValidationError
 from .auth import AuthUtility
+from schemas.user_schema import Password, Email
+import bcrypt
 
 
 
@@ -7,14 +10,49 @@ class ProfileRouter:
     def __init__(self, db):
         self.__router = APIRouter()
         self.__db = db 
+        self.__add_routes()
+
+
+    def __add_routes(self):
+        self.__router.add_api_route(path="/api/v1/user/password", endpoint=self.__change_password, methods=["PATCH"])
+        self.__router.add_api_route(path="/api/v1/user/email", endpoint=self.__change_email, methods=["PATCH"])
     
+    def get_router(self):
+        return self.__router
 
 
     async def __change_password(self, request: Request):
-        user_data = await request.json()
         jwt_active = AuthUtility.authenticate(request)
-        if jwt_active:
-            payload = AuthUtility.get_jwt_payload(request)
-            uid = payload["sub"]
-            user_data = await request.json()
-            
+        try:
+            if jwt_active:
+                payload = AuthUtility.get_jwt_payload(request)
+                uid = int(payload["sub"])
+                user_data = await request.json()
+                password_schema = Password(**user_data)
+                hashed_password = bcrypt.hashpw(password_schema.password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+                self.__db.change_password(uid, hashed_password)
+                return {"message" : "password change success"}
+            else:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+        except ValidationError:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    async def __change_email(self, request: Request):
+        jwt_active = AuthUtility.authenticate(request)
+        try:
+            if jwt_active:
+                payload = AuthUtility.get_jwt_payload(request)
+                uid = int(payload["sub"])
+                user_data = await request.json()
+                email_schema = Email(**user_data)
+                self.__db.change_email(uid, email_schema.email)
+                return {"message" : "email change success"}
+            else:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+        except ValidationError:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+
+
+
+
