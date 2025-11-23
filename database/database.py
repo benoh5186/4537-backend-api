@@ -140,6 +140,27 @@ class Database:
         self.__connection.commit()
         return rows > 0
 
+    def update_endpoint(self, endpoint_info):
+        if self.__connection is None:
+            self.start_database()
+        query = """
+        INSERT INTO api_request_stats (http_method, endpoint, request_count)
+        VALUES (%s, %s, 1)
+        ON DUPLICATE KEY UPDATE request_count = request_count + 1;
+        """
+        self.__cursor.execute(query, (endpoint_info["method"], endpoint_info["endpoint"]))
+        self.__connection.commit()
+
+    def get_all_endpoints(self):
+        if self.__connection is None:
+            self.start_database()
+        query = """SELECT * FROM api_request_stats"""
+        self.__cursor.execute(query)
+        data = self.__cursor.fetchall()
+        return data 
+
+
+
             
 
 
