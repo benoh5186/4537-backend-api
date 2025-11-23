@@ -94,6 +94,7 @@ class AuthRouter:
             
             user = AuthUtility.validate_login(login_schema, self.__db)
             AuthUtility.create_session_cookie(user, response)
+            
             print(response.headers.get("set_cookie"))
             return {"message" : "login success", "is_admin" : user["is_admin"]}
         except ValidationError as error:
@@ -269,6 +270,27 @@ class AuthUtility:
             return True
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
             return False
+        
+    @staticmethod 
+    def increase_api_usage(request: Request, db):
+        jwt_token = request.cookies.get("jwt")
+        if jwt_token is None:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+
+        try:
+            payload = jwt.decode(
+                jwt_token,
+                key=os.getenv("JWT_SECRET_KEY"),
+                algorithms=[os.getenv("JWT_ALGORITHM")],
+            )
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Token has expired")
+        except jwt.InvalidTokenError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        uid = payload["sub"]   
+
+        db.increment_api_usage(uid)
 
             
 

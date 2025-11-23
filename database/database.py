@@ -98,7 +98,7 @@ class Database:
         usage = self.__cursor.fetchone()
         return usage["usage_count"]
 
-    def __increment_api_usage(self, uid):
+    def increment_api_usage(self, uid):
         if self.__connection is None:
             self.start_database()
         query = """UPDATE api_usage SET usage_count = usage_count + 1 WHERE uid = %s"""
