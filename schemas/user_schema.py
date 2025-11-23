@@ -24,7 +24,7 @@ class UserLogin(BaseModel):
     password: str = Field(min_length=3)
 
 class Email(BaseModel):
-    email = EmailStr
+    email: EmailStr
 
 class Password(BaseModel):
     password: str = Field(min_length=3)
