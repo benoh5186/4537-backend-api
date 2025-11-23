@@ -57,10 +57,9 @@ class AuthRouter:
         """
         payload = AuthUtility.authenticate(request)
         if payload:
-            payload = AuthUtility.get_jwt_payload(request)
             uid = int(payload["sub"])
             user_info = self.__db.find_user(uid)
-            is_admin = user_info["is_admin"]
+            is_admin = bool(user_info["is_admin"])
             api_usage = self.__db.get_api_usage(uid)
             
             return JSONResponse(
@@ -213,30 +212,6 @@ class AuthUtility:
         )
 
     @staticmethod
-    def get_jwt_payload(request: Request):
-        """
-        Decodes jwt token from cookies and returns payload.
-
-        Payload includes email address, api usage, creation time (iat), and expiration time (exp)
-
-        :param request: HTTP request
-        :return: payload data from decoding jwt
-        """
-        jwt_token = request.cookies.get("jwt")
-            
-        if jwt_token is None:
-            print("jwt is none")
-            raise HTTPException(status_code=401, detail="Not authenticated")
-        try:
-            payload = jwt.decode(jwt=jwt_token, key=os.getenv("JWT_SECRET_KEY"), algorithms=os.getenv("JWT_ALGORITHM"))
-            return payload 
-        except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="Token has expired")
-        except jwt.InvalidTokenError:
-            print("invalidTokenError")
-            raise HTTPException(status_code=401, detail="Invalid token")
-
-    @staticmethod
     def validate_login(login_info:UserLogin, db):
         """
         Validate user login credentials against stored database records.
@@ -261,6 +236,12 @@ class AuthUtility:
 
     @staticmethod
     def authenticate(request:Request):
+        """
+        Decodes jwt token from cookies and returns payload.
+
+        :param request: HTTP request
+        :return: payload data from decoding jwt
+        """
         jwt_token = request.cookies.get("jwt")
         if jwt_token is None:
             raise HTTPException(status_code=401, detail="Not authenticated")
@@ -287,6 +268,13 @@ class AuthUtility:
     def get_api_usage(payload, db):
         uid = payload["sub"]
         return db.get_api_usage(uid)
+    
+    @staticmethod
+    def check_is_admin(payload, db):
+        uid = payload["sub"]
+        user = db.find_user(uid)
+        return bool(user["is_admin"])
+        
 
             
 
