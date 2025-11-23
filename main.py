@@ -3,7 +3,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from database.database import Database
-from routers import auth, ai
+from routers import auth, ai, profile
 import os 
 
 """
@@ -22,7 +22,9 @@ db_info = {"host" : os.getenv("DB_HOST"), "port" : int(os.getenv("DB_PORT")),
 db = Database(**db_info)
 
 routers = [
-    auth.AuthRouter(db).get_router(), ai.AI(db).get_router()
+    auth.AuthRouter(db).get_router(), 
+    ai.AI(db).get_router(),
+    profile.ProfileRouter(db).get_router()
 ]
 
 
