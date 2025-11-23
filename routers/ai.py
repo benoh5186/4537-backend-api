@@ -9,7 +9,7 @@ class AI:
         self.__add_routes()
         
     def __add_routes(self):
-        self.__router.add_api_route(path="/api/service/ai", endpoint=self.__handle_ai_json, methods=["POST"])
+        self.__router.add_api_route(path="/api/v1/service/ai", endpoint=self.__handle_ai_json, methods=["POST"])
     
     def get_router(self):
         return self.__router
