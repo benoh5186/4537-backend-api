@@ -43,43 +43,47 @@ uvicorn main:app --reload
 - **422**: Unprocessable Entity
 
 
-# Schemas 
-- UserCreation: represents a row to be inserted in `user` table in the mysql database with defined constraints for all parameters such as email, password, is_admin. ValidationException will be raised if the parameters in the body of the request does not match the parameter constraints defined in the schema.
-- UserLogin: represents a row to fetch from user table in the database, with defined constraints for all parameters such as email and password. ValidationException is raised if the constraints are not met.
+## Schemas
+- **UserCreate** – inserted row for `user` table with constraints for email, password, and is_admin  
+- **UserLogin** – validated login input  
+- **Email** – validated email update  
+- **Password** – validated password update  
+
+Validation errors in any schema raise **422**.
+
+## Database
+Database class manages CRUD for the `user`, `api_usage`, and `api_request_stats` tables.
+
+## Exceptions
+- **PasswordException** – incorrect password  
+- **ValidationException** – schema violations  
+- **HTTPException** – general authorization or data errors  
 
 
-# Database
-A class with methods that executes queries for `user` table in mysql database. Creates `user` table if it does not already exist in the database.
 
+# Endpoints
 
-# Exceptions
-- PasswordException: Raised if the email is found in the database, but the password from the request body does not match the password for the row with the identical email in the database
-- ValidationException: Raised if arguments do not match the expected constraints defined in the schema
-- HTTPException: Raised if the user is not authenticated or authorized, or for other general HTTP errors
+# AUTH ROUTES (`AuthRouter`)
 
-
-#Endpoints
-
-## POST: 'api/auth/login'
+## POST: '/api/v1/auth/login'
 Authenticates the user if their credential matches one of the rows in the `user` table in the database.
-- `email` parameter: string that needs to match type, EmailType, from pydantic
-= `password` parameter: string that represents unhashed password to compare to the hashed password in the database
-    -  needs to be encoded in bytes before checking if the password for the user email, if found in the database, matches it using bcrypt.checkpw(login_pass_in_bytes, user_database_pw_in_bytes) method
-- Returns Ok(200), if the user is authenticated with cookie that includes jwt
-- Returns Unprocessable Entity(422), if the login information does not match UserLogin 
-Schema 
-- Returns Unauthorized(401) when the email exists in the database, but the password does not match the password in the row with the same email in the database.
+- `email` parameter: string that needs to match email format specified in UserLogin schema.
+- `password` parameter: string that represents unhashed password to compare to the hashed password stored in the database.
+    - needs to be encoded in bytes before checking using bcrypt.checkpw(login_pass_in_bytes, user_database_pw_in_bytes)
+- Returns Ok(200) if the user is authenticated with cookie that includes jwt.
+- Returns Unprocessable Entity(422) if the login information does not match UserLogin schema.
+- Returns Unauthorized(401) when the email exists in the database, but the password does not match the stored hash.
 
 ### Request Example
 
 ##### Successful Request
 - Req.body:
-``` json
+```json
 {
     "email" : "hookaDoncic@lakers.com",
     "password" : "thisisrealluka"
 }
-
+```
 - Res:
 ```json
 {
@@ -88,116 +92,107 @@ Schema
 }
 ```
 
-##### `password` does not match the password for the row in `user` table with the same email
+##### `password` does not match the hashed password for the same email
 - Req.body:
-``` json
+```json
 {
     "email" : "austinReaves@lakers.com",
     "password" : "bestWhiteBoyInTheLeague"
 }
 ```
 - Res:
-``` json 
+```json
 {
-    "code" : 400,
+    "code" : 400
 }
 ```
 
-##### Invalid credentials: if `email` does not exist in the database
+##### Invalid credentials: email does not exist in the database
 - Req.body:
-``` json
+```json
 {
     "email" : "viniJrBallonDor@soccer.com",
-    "password" :"lmao67420"
+    "password" : "lmao67420"
 }
 ```
 - Res:
-``` json
+```json
 {
     "code" : 401
 }
 ```
 
-##### Invalid `email`(not matching format specified in UserLogin schema)
+##### Invalid `email` format
 - Req.body:
-``` json
-{ 
+```json
+{
     "email" : "luka",
     "password" : "lukalakeRs"
 }
 ```
 - Res:
-``` json
+```json
 {
     "code" : 422,
-    "detail" : {
-        "email" : False,
-        "password" : True
-    }
+    "detail" : { "email" : false, "password" : true }
 }
 ```
 
-##### Invalid `password`(not matching length specified in UserLogin schema)
+##### Invalid `password` length
 - Req.body:
-``` json
+```json
 {
     "email" : "marcus@brazil.com",
     "password" : "lages"
 }
 ```
-
 - Res:
-``` json
+```json
 {
     "code" : 422,
-    "detail" : {
-        "email" : True,
-        "password" : False
-    }
+    "detail" : { "email" : true, "password" : false }
 }
 ```
 
 ##### Invalid `email` and `password`
 - Req.body:
-``` json 
+```json
 {
     "email" : "ethan@korea.com",
     "password" : "park"
 }
 ```
 - Res:
-``` json
+```json
 {
     "code" : 422,
-    "detail" : {
-        "email" : False,
-        "password" : False
-    }
+    "detail" : { "email" : false, "password" : false }
 }
 ```
 
-## POST: 'api/auth/signup'
-Inserts user information such as email, password, and is_admin that represents a row in the user table into the database
-- `email` parameter: string that needs to match email format specified in UserLogin schema
-- `password` parameter: string that needs to match password format specified in UserLogin schema
-    -  needs to be encoded in bytes before hashing it with bcrypt
-- `is_admin` parameter: bool that specifies if the user signing up is an admin
-- Returns Created(201), if the user information is successfully inserted into the database
-- Returns Unprocessable Entity(422) if the user information does not match UserCreation 
-Schema 
-- Returns Conflict(409) if the user email already exists in the database
+---
+
+## POST: '/api/v1/auth/signup'
+Inserts user information such as email, password, and is_admin that represent a new row in the `user` table.
+- `email` parameter: must match email format specified in UserCreate schema.
+- `password` parameter: must match password rules in UserCreate schema.
+    - must be encoded in bytes before hashing with bcrypt.
+- `is_admin` parameter: boolean that specifies if the user is an admin.
+- Returns Created(201) if the user is successfully inserted.
+- Returns Unprocessable Entity(422) if the input does not match UserCreate schema.
+- Returns Conflict(409) if the email already exists.
 
 ### Request Example
 
 ##### Successful Request
 - Req.body:
-``` json
+```json
 {
     "email" : "hookaDoncic@lakers.com",
     "password" : "thisisrealluka",
-    "is_admin" : "False"
+    "is_admin" : false
 }
-
+```
 - Res:
 ```json
 {
@@ -206,101 +201,235 @@ Schema
 }
 ```
 
-##### Invalid credentials: if `email` exists in the database
+##### Email already exists
 - Req.body:
-``` json
+```json
 {
     "email" : "rodriBallonDor@soccer.com",
-    "password" :"lmao67420"
+    "password" : "lmao67420"
 }
 ```
 - Res:
-``` json
+```json
 {
     "code" : 409
 }
 ```
 
-##### Invalid `email`(not matching format specified in UserLogin schema)
-- Req.body:
-``` json
-{ 
+##### Invalid `email`
+```json
+{
     "email" : "luka",
     "password" : "lukalakeRs"
 }
 ```
 - Res:
-``` json
+```json
 {
     "code" : 422,
-    "detail" : {
-        "email" : False,
-        "password" : True
-    }
+    "detail" : { "email" : false, "password" : true }
 }
 ```
 
-##### Invalid `password`(not matching length specified in UserLogin schema)
-- Req.body:
-``` json
+##### Invalid `password`
+```json
 {
     "email" : "marcus@brazil.com",
     "password" : "lages"
 }
 ```
-
-- Res:
-``` json
-{
-    "code" : 422,
-    "detail" : {
-        "email" : True,
-        "password" : False
-    }
-}
-```
-
-##### Invalid `email` and `password`
-- Req.body:
-``` json 
-{
-    "email" : "ethan@korea.com",
-    "password" : "park"
-}
-```
-- Res:
-``` json
-{
-    "code" : 422,
-    "detail" : {
-        "email" : False,
-        "password" : False
-    }
-}
-```
-
-## GET: 'api/auth/session'
-Checks if the browser is currently in session by checking if the JWT inside the cookie is not expired yet.
-- Returns Ok(200), if the JWT is still active
-- Returns Unauthorized(401) if the JWT does not exist or has expired 
-
-### Request Example
-
-##### If JWT is active
 - Res:
 ```json
 {
-    "code" : 200,
-    "message" : "In session"
+    "code" : 422,
+    "detail" : { "email" : true, "password" : false }
 }
 ```
 
-##### If JWT does not exist or has expired
+---
 
-- Res:
-``` json
+## GET: '/api/v1/auth/authenticate'
+Checks if the browser is currently in session by validating JWT in the cookie.
+- Returns Ok(200) if JWT is valid.
+- Returns Unauthorized(401) if JWT does not exist or has expired.
+- Returns additional user information: `is_admin`, `api_usage`, and `email`.
+
+##### If JWT is active:
+```json
+{
+    "code": 200,
+    "is_admin": false,
+    "api_usage": 14,
+    "email": "user@gmail.com"
+}
+```
+
+##### If JWT is missing or expired:
+```json
 {
     "code" : 401,
-    "message" : "not in session"
+    "message" : "unauthorized"
 }
+```
+
+---
+
+# PROFILE ROUTES (`ProfileRouter`)
+
+## PATCH: '/api/v1/user/password'
+Updates the password for the authenticated user.
+- Valid JWT required.
+- Body validated using Password schema.
+- Returns Conflict(409) if the new password matches the old password (bcrypt comparison).
+- Returns Unauthorized(401) if JWT is missing.
+- Returns Unprocessable Entity(422) if schema validation fails.
+
+### Request Example
+
+##### Successful Request
+```json
+{ "password" : "newPassword123" }
+```
+- Res:
+```json
+{ "message" : "password change success" }
+```
+
+##### Same password as before
+- Res:
+```json
+{ "code" : 409 }
+```
+
+##### Invalid password format
+```json
+{ "code" : 422 }
+```
+
+---
+
+## PATCH: '/api/v1/user/email'
+Updates the email for the authenticated user.
+- Valid JWT required.
+- Body validated using Email schema.
+- Returns Conflict(409) if the new email is identical to the current one.
+- Returns Conflict(409) if changing fails because email already exists.
+- Returns Unprocessable Entity(422) if schema validation fails.
+
+### Request Example
+
+##### Successful Request
+```json
+{ "email" : "newEmail@gmail.com" }
+```
+- Res:
+```json
+{
+    "message" : "email change success",
+    "new_email" : "newEmail@gmail.com"
+}
+```
+
+##### Same email
+```json
+{ "detail" : { "same_email" : true } }
+```
+
+##### Email already exists
+```json
+{ "detail" : { "same_email" : false } }
+```
+
+---
+
+# AI ROUTES (`AI`)
+
+## POST: '/api/v1/service/ai/text'
+Sends text to AI backend for JSON parsing.
+- Increments API usage.
+- Returns parsed JSON and updated api_usage.
+- Returns Unauthorized(401) if JWT missing.
+
+### Request Example
+```json
+{
+  "text": "hello world",
+  "lang": "en"
+}
+```
+- Res:
+```json
+{
+  "data": {"greetings" : "hello"},
+  "api_usage": 12
+}
+```
+
+---
+
+## POST: '/api/v1/service/ai/schema'
+Sends text + schema to AI backend for structured parsing.
+- Same behavior as text endpoint.
+- Returns parsed data and updated api_usage.
+
+### Request Example
+```json
+{
+  "text": "hello world",
+  "lang": "en",
+  "schema": {"greetings" : "hello" }
+}
+```
+- Res:
+```json
+{
+  "data": {"greetings" : "hello"  },
+  "api_usage": 11
+}
+```
+
+---
+
+# ADMIN ROUTES (`Admin`)
+
+## GET: '/api/v1/admin/users'
+Retrieves all users along with their usage counts.
+- Requires admin privileges.
+- Returns Forbidden(403) if user is not an admin.
+
+### Response Example
+```json
+[
+  {
+    "uid": 1,
+    "email": "ben@gmail.com",
+    "is_admin": false,
+    "remaining_usage": 12
+  }
+]
+```
+
+---
+
+## DELETE: '/api/v1/admin/user/{uid}'
+Deletes a user from the system.
+- Requires admin privileges.
+- Returns No Content(204) on success.
+- Returns Not Found(404) if user does not exist.
+
+---
+
+## GET: '/api/v1/admin/endpoints'
+Returns list of all API calls tracked in endpoint logs.
+- Requires admin privileges.
+
+### Response Example
+```json
+[
+  {
+    "http_method": "GET",
+    "endpoint": "/api/v1/auth/authenticate",
+    "request_count": 15
+  }
+]
 ```

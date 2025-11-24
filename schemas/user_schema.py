@@ -24,9 +24,15 @@ class UserLogin(BaseModel):
     password: str = Field(min_length=3)
 
 class Email(BaseModel):
+    """
+    Schema for validating an email update request.
+    """
     email: EmailStr
 
 class Password(BaseModel):
+    """
+    Schema for validating a password update request.
+    """
     password: str = Field(min_length=3)
 
 

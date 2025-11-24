@@ -97,6 +97,15 @@ class Database:
             return False
 
     def get_api_usage(self, uid):
+        """
+        Retrieve the current API usage count for a user.
+
+        If no usage row exists for the user, a new row is created with the default
+        usage count of 0.
+
+        :param uid: integer representing the user's unique identifier
+        :return: integer representing the user's API usage count
+        """
         if self.__connection is None:
             self.start_database()
 
@@ -106,6 +115,7 @@ class Database:
 
         # usage can be None because prior to splitting table, the entries did not have corresponding api_usage entry. 
         if usage is None:
+            # No row yet:  create one with default 0
             insert_query = """INSERT INTO api_usage (uid, usage_count) VALUES (%s, 0)"""
             self.__cursor.execute(insert_query, (uid,))
             self.__connection.commit()
@@ -114,6 +124,11 @@ class Database:
         return usage["usage_count"]
 
     def increment_api_usage(self, uid):
+        """
+        Increment the API usage count for a specific user by 1.
+        
+        :param uid: integer representing the user's unique identifier
+        """
         if self.__connection is None:
             self.start_database()
         query = """UPDATE api_usage SET usage_count = usage_count + 1 WHERE uid = %s"""
@@ -121,6 +136,12 @@ class Database:
         self.__connection.commit()
     
     def change_password(self, uid, hashed_password):
+        """
+        Update the password for a specific user.
+
+        :param uid: integer representing the user's unique identifier
+        :param hashed_password: string containing the newly hashed password
+        """
         if self.__connection is None:
             self.start_database()
         query = """UPDATE user SET password = %s WHERE uid = %s"""
@@ -129,6 +150,13 @@ class Database:
 
 
     def change_email(self, uid, email):
+        """
+        Update the email address for a specific user.
+
+        :param uid: integer representing the user's unique identifier
+        :param email: string containing the new email address
+        :return: True if update succeeded, False if email is already in use
+        """
 
         if self.__connection is None:
             self.start_database()
@@ -142,6 +170,12 @@ class Database:
             return False
         
     def delete_user(self, uid):
+        """
+        Delete a user and all associated API usage data from the database.
+
+        :param uid: integer representing the user's unique identifier
+        :return: True if a user was deleted, False otherwise
+        """
         if self.__connection is None:
             self.start_database()
 
@@ -154,6 +188,14 @@ class Database:
         return rows > 0
 
     def update_endpoint(self, endpoint_info):
+        """
+        Update or create an API request count entry for a given endpoint.
+
+        If the endpoint already exists in the table, its request_count is incremented.
+        Otherwise, a new row is inserted with an initial count of 1.
+
+        :param endpoint_info: dictionary containing 'method' and 'endpoint' keys
+        """
         if self.__connection is None:
             self.start_database()
         query = """
@@ -165,6 +207,11 @@ class Database:
         self.__connection.commit()
 
     def get_all_endpoints(self):
+        """
+        Retrieve all endpoint request statistics from the database.
+
+        :return: a list of dictionaries containing endpoint usage data
+        """
         if self.__connection is None:
             self.start_database()
         query = """SELECT * FROM api_request_stats"""
@@ -173,6 +220,14 @@ class Database:
         return data 
 
     def get_users_with_usage(self):
+        """
+        Retrieve all users along with their API usage counts.
+
+        This method performs a join between the user table and the api_usage table
+        to return combined information for each user.
+
+        :return: list of dictionaries containing user and usage data
+        """
         if self.__connection is None:
             self.start_database()
 
