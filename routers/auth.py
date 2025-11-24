@@ -162,22 +162,6 @@ class AuthRouter:
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=detail
             )
-            
-    # # TODO: Make a cleaner version of the explicit preflight handler
-    # async def __preflight_handler(request: Request, full_path: str):
-    #     response = JSONResponse(content={"ok": True})
-    #     origin = request.headers.get("origin")
-
-    #     # TODO: better to check if origin is part of the allowed origins first
-    #     if origin in ["https://4537-project-frontend.netlify.app", "http://localhost:8000"]:
-    #         response.headers["Access-Control-Allow-Origin"] = origin
-    #         response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
-    #         response.headers["Access-Control-Allow-Headers"] = request.headers.get(
-    #             "access-control-request-headers", ""
-    #         )
-    #         response.headers["Access-Control-Allow-Credentials"] = "true"
-    #     return response
-
 
 
 class AuthUtility:

@@ -86,9 +86,10 @@ Authenticates the user if their credential matches one of the rows in the `user`
 ```
 - Res:
 ```json
+status code: 200
 {
-    "code" : 200,
-    "message" : "login success"
+    "message" : "login success",
+    "is_admin" : true
 }
 ```
 
@@ -102,12 +103,14 @@ Authenticates the user if their credential matches one of the rows in the `user`
 ```
 - Res:
 ```json
+status code: 400
 {
-    "code" : 400
+  "detail": "Bad Request"
 }
 ```
 
 ##### Invalid credentials: email does not exist in the database
+status code: 401
 - Req.body:
 ```json
 {
@@ -118,7 +121,7 @@ Authenticates the user if their credential matches one of the rows in the `user`
 - Res:
 ```json
 {
-    "code" : 401
+    "detail": {"email": false, "password": true}
 }
 ```
 
@@ -132,8 +135,8 @@ Authenticates the user if their credential matches one of the rows in the `user`
 ```
 - Res:
 ```json
+status code: 422
 {
-    "code" : 422,
     "detail" : { "email" : false, "password" : true }
 }
 ```
@@ -148,8 +151,8 @@ Authenticates the user if their credential matches one of the rows in the `user`
 ```
 - Res:
 ```json
+status code: 422
 {
-    "code" : 422,
     "detail" : { "email" : true, "password" : false }
 }
 ```
@@ -164,8 +167,8 @@ Authenticates the user if their credential matches one of the rows in the `user`
 ```
 - Res:
 ```json
+status code: 422
 {
-    "code" : 422,
     "detail" : { "email" : false, "password" : false }
 }
 ```
@@ -195,8 +198,8 @@ Inserts user information such as email, password, and is_admin that represent a 
 ```
 - Res:
 ```json
+status code: 201
 {
-    "code" : 201,
     "message" : "sign up successful"
 }
 ```
@@ -211,8 +214,9 @@ Inserts user information such as email, password, and is_admin that represent a 
 ```
 - Res:
 ```json
+status code: 409
 {
-    "code" : 409
+    "detail":"User already exists"
 }
 ```
 
@@ -225,8 +229,8 @@ Inserts user information such as email, password, and is_admin that represent a 
 ```
 - Res:
 ```json
+status code: 422
 {
-    "code" : 422,
     "detail" : { "email" : false, "password" : true }
 }
 ```
@@ -240,8 +244,8 @@ Inserts user information such as email, password, and is_admin that represent a 
 ```
 - Res:
 ```json
+status code: 422
 {
-    "code" : 422,
     "detail" : { "email" : true, "password" : false }
 }
 ```
@@ -266,8 +270,8 @@ Checks if the browser is currently in session by validating JWT in the cookie.
 
 ##### If JWT is missing or expired:
 ```json
+status code: 402
 {
-    "code" : 401,
     "message" : "unauthorized"
 }
 ```
@@ -298,12 +302,18 @@ Updates the password for the authenticated user.
 ##### Same password as before
 - Res:
 ```json
-{ "code" : 409 }
+status code: 409
+{
+  "detail": null
+}
 ```
 
 ##### Invalid password format
 ```json
-{ "code" : 422 }
+status code: 422
+{
+  "detail": null
+}
 ```
 
 ---
@@ -324,6 +334,7 @@ Updates the email for the authenticated user.
 ```
 - Res:
 ```json
+status code: 200
 {
     "message" : "email change success",
     "new_email" : "newEmail@gmail.com"
@@ -332,11 +343,13 @@ Updates the email for the authenticated user.
 
 ##### Same email
 ```json
+status code: 409
 { "detail" : { "same_email" : true } }
 ```
 
 ##### Email already exists
 ```json
+status code: 409
 { "detail" : { "same_email" : false } }
 ```
 
@@ -359,6 +372,7 @@ Sends text to AI backend for JSON parsing.
 ```
 - Res:
 ```json
+status code: 200
 {
   "data": {"greetings" : "hello"},
   "api_usage": 12
@@ -382,6 +396,7 @@ Sends text + schema to AI backend for structured parsing.
 ```
 - Res:
 ```json
+status code: 200
 {
   "data": {"greetings" : "hello"  },
   "api_usage": 11
@@ -399,12 +414,13 @@ Retrieves all users along with their usage counts.
 
 ### Response Example
 ```json
+status code: 200
 [
   {
     "uid": 1,
     "email": "ben@gmail.com",
     "is_admin": false,
-    "remaining_usage": 12
+    "api_usage": 12
   }
 ]
 ```
@@ -419,12 +435,26 @@ Deletes a user from the system.
 
 ---
 
+### Response Example
+On success
+```
+status code: 204
+```
+
+On fail 
+not admin
+```json
+status code: 403
+{"detail" : "Admin access required"}
+```
+
 ## GET: '/api/v1/admin/endpoints'
 Returns list of all API calls tracked in endpoint logs.
 - Requires admin privileges.
 
 ### Response Example
 ```json
+status code: 200
 [
   {
     "http_method": "GET",
