@@ -273,16 +273,37 @@ class AuthUtility:
         
     @staticmethod 
     def increase_api_usage(payload, db):
+        """
+        Increase the API usage count for the user extracted from a JWT payload.
+
+        :param payload: decoded JWT payload containing the user ID
+        :param db: database instance used to update API usage
+        """
         uid = int(payload["sub"])   
         db.increment_api_usage(uid)
         
     @staticmethod
     def get_api_usage(payload, db):
+        """
+        Retrieve the API usage count for the authenticated user.
+
+        :param payload: decoded JWT payload containing the user ID
+        :param db: database instance to query usage information
+        :return: integer representing the user's API usage count
+        """
         uid = int(payload["sub"])
         return db.get_api_usage(uid)
     
     @staticmethod
     def check_is_admin(payload, db):
+        """
+        Check whether the authenticated user has administrative privileges.
+
+        :param payload: decoded JWT payload containing the user ID
+        :param db: database instance used to retrieve user data
+        :return: True if the user is an admin, False otherwise
+        :raises HTTPException: if the user does not exist
+        """
         uid = int(payload["sub"])
         user = db.find_user(uid)
         if user:
