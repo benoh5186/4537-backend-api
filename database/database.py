@@ -104,8 +104,8 @@ class Database:
         self.__cursor.execute(query, (uid,))
         usage = self.__cursor.fetchone()
 
+        # usage can be None because prior to splitting table, the entries did not have corresponding api_usage entry. 
         if usage is None:
-            # No row yet → create one with default 0
             insert_query = """INSERT INTO api_usage (uid, usage_count) VALUES (%s, 0)"""
             self.__cursor.execute(insert_query, (uid,))
             self.__connection.commit()
@@ -145,7 +145,7 @@ class Database:
         if self.__connection is None:
             self.start_database()
 
-        # Delete dependent rows first
+        # Delete from both tables 
         self.__cursor.execute("DELETE FROM api_usage WHERE uid = %s", (uid,))
 
         query = "DELETE FROM user WHERE uid = %s"
